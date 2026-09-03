@@ -27,7 +27,7 @@ Wikipedia application on the phone.
 | URL to post ID | Resolved on the server, on demand, when the visitor shows intent. |
 | Desktop intent | Prefetch after 80 ms. Open after 300 ms. Close 200 ms after the pointer leaves. |
 | Touch intent | The first tap opens the sheet. The second tap on the same link navigates. |
-| Mode switch | The gesture follows the pointer type. The layout follows the viewport width. |
+| Mode switch | The gesture follows the pointer type. The layout follows the pointer type or the width. |
 | Positioning | CSS anchor positioning when the browser supports it, a pure function otherwise. |
 | Popover DOM | One shared element in the footer. |
 | Excerpt | The manual excerpt, else the core fallback, trimmed to a filterable word count. |
@@ -327,8 +327,8 @@ $break-large: 960px  $break-medium: 782px  $break-small: 600px
 $break-mobile: 480px
 ```
 
-The plugin uses the medium breakpoint, 782px, as the split between the anchored
-popover and the sheet.
+The plugin uses the medium breakpoint, 782px, as the width arm of the rule of
+section 6.3.
 
 There is no `wp-7.1` npm distribution tag yet; the newest is `wp-7.0`. The
 plugin therefore pins `roots/wordpress` to `^7.1.0` in `composer.json`, and the
@@ -343,10 +343,28 @@ does not depend on `@wordpress/base-styles` for a value it would copy anyway.
 The gesture follows the pointer. `@media (hover: hover) and (pointer: fine)`
 gets the hover behavior. Every other pointer gets the tap behavior.
 
-The layout follows the width. Below 782px the dialog becomes a sheet:
-`position: fixed`, `inset-inline: 0`, `inset-block-end: 0`,
-`max-block-size: 60vh`, its own `overflow: auto`, rounded corners at the block
-start, and `padding-block-end: env(safe-area-inset-bottom)`.
+The layout follows the pointer or the width:
+
+```scss
+@media (pointer: coarse), (max-width: #{$break-medium - 1px}) { /* sheet */ }
+```
+
+`(pointer: coarse)` reports the primary pointer of the device. Every phone and
+every tablet therefore gets the sheet at every width and in both orientations,
+including a tablet of 1366px in landscape. A laptop with a touch screen reports
+`fine`, so it keeps the anchored popover.
+
+The width arm serves only a narrow window on a desktop. A single width cannot
+replace the pointer arm, because the landscape widths of the tablets are 1024px,
+1133px, 1180px and 1366px, and a value that covers them would also turn a
+desktop window into a sheet.
+
+As a sheet the dialog uses `position: fixed`, `inset-inline: 0`,
+`inset-block-end: 0`, `max-block-size: 60vh`, its own `overflow: auto`, rounded
+corners at the block start, and `padding-block-end: env(safe-area-inset-bottom)`.
+
+`PopoverRegion` seeds the same query string into the state, and the store reads
+it with `matchMedia`, so `state.isSheet` and the stylesheet never disagree.
 
 The page is never scroll locked. The visitor can scroll while the sheet stays at
 the bottom of the viewport.
