@@ -33,8 +33,6 @@ autoload(__DIR__);
 add_action(
     'plugins_loaded',
     static function (): void {
-        package()
-            ->addModule(Blocks\Module::new())
-            ->boot();
+        package()->boot();
     }
 );
