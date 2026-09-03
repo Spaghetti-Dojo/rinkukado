@@ -1,0 +1,23 @@
+# Rinkukado Project Directives
+
+## Plans and Open Spec Implementation Flow Constraints
+
+1. When executing a plan or implementing tasks of a spec, always stop at each step / task and ask for confirmation before proceeding to the next one.
+
+## Project Layout
+
+- `sources/server/` — PHP, namespace `SpaghettiDojo\Rinkukado`, one directory per module.
+- `sources/client/blocks/` — one directory per block. It holds every file of the block: `block.json`, `render.php`, `view.ts` and `style.scss`.
+- `sources/server/Blocks/` — the block module and the registrar. Not specific to one block.
+- `tests/` — four layers. Read `docs/testing.md` before you write a test.
+  - `tests/unit/server/` — Pest on Brain Monkey. No WordPress.
+  - `tests/integration/server/` — Pest on a real WordPress. `tests/bootstrap-integration.php` installs it.
+  - `tests/unit/client/` — Jest. Files end with `.test.ts`.
+  - `tests/e2e/specs/` — Playwright. Files end with `.spec.ts`.
+- `tests/e2e/specs/` — Playwright specs.
+- `build/` — generated. Never edit it by hand.
+
+## Quality Assurance
+
+Run `composer qa` for PHP. Run `pnpm lint:scripts` and `pnpm lint:styles` for the client side.
+The `Stop` hook runs `.claude/hooks/qa.sh` automatically.
