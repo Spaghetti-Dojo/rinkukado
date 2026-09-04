@@ -14,9 +14,6 @@ The suffix decides the runner on the client side. Jest collects `*.test.ts`
 and ignores `*.spec.ts`. Playwright collects only `tests/e2e/specs`. The two
 never pick up the same file.
 
-Every command passes when its directory holds no test. Delete the examples of
-this template without breaking the build.
-
 ## Which layer
 
 Ask what the test must see:
@@ -51,17 +48,23 @@ declare(strict_types=1);
 namespace SpaghettiDojo\Rinkukado\Tests\Unit;
 
 use Brain\Monkey\Functions;
-use Psr\Container\ContainerInterface;
-use SpaghettiDojo\Rinkukado\Blocks\Module;
+use SpaghettiDojo\Rinkukado\Config;
 
-it('registers the block registrar on init', function (): void {
-    Functions\expect('add_action')
-        ->once()
-        ->with('init', \Mockery::type('callable'));
+beforeEach(function (): void {
+    Functions\when('apply_filters')->alias(
+        static fn (string $hook, mixed $value): mixed => $value
+    );
+    Functions\when('get_post_types')->justReturn(['post' => 'post', 'page' => 'page']);
+});
 
-    $container = \Mockery::mock(ContainerInterface::class);
+it('returns the defaults', function (): void {
+    $config = Config::new();
 
-    expect(Module::new()->run($container))->toBeTrue();
+    expect($config->rootSelector())->toBe('main')
+        ->and($config->denyClass())->toBe('no-rinkukado')
+        ->and($config->excerptLength())->toBe(30)
+        ->and($config->timings())->toBe(['prefetch' => 80, 'open' => 300, 'close' => 200])
+        ->and($config->postTypes())->toBe(['post', 'page']);
 });
 ```
 
@@ -94,14 +97,32 @@ declare(strict_types=1);
 
 namespace SpaghettiDojo\Rinkukado\Tests\Integration;
 
-it('registers the example block', function (): void {
-    $registry = \WP_Block_Type_Registry::get_instance();
+function get(string $url): \WP_REST_Response
+{
+    $request = new \WP_REST_Request('GET', '/rinkukado/v1/preview');
+    $request->set_param('url', $url);
 
-    expect($registry->is_registered('rinkukado/example'))->toBeTrue();
-})->skip(
-    !is_readable(dirname(__DIR__, 3) . '/build/blocks-manifest.php'),
-    'Run pnpm build before the integration tests.'
-);
+    return rest_get_server()->dispatch($request);
+}
+
+it('returns the payload of a published post', function (): void {
+    $postId = wp_insert_post([
+        'post_title' => 'The title',
+        'post_excerpt' => 'The excerpt',
+        'post_status' => 'publish',
+    ]);
+
+    $response = get(get_permalink($postId));
+
+    expect($response->get_status())->toBe(200)
+        ->and($response->get_data()['id'])->toBe($postId)
+        ->and($response->get_data()['title'])->toBe('The title')
+        ->and($response->get_data()['excerpt'])->toBe('The excerpt')
+        ->and($response->get_data()['thumbnail'])->toBeNull()
+        ->and($response->get_headers()['Cache-Control'])->toBe('public, max-age=300');
+
+    wp_delete_post($postId, true);
+});
 ```
 
 Rules:
@@ -109,7 +130,7 @@ Rules:
 - Namespace: `SpaghettiDojo\Rinkukado\Tests\Integration`.
 - There is no base class. Write plain Pest tests.
 - Build the client first when the test reads the build directory. Skip the
-  test when the directory is absent, as shown above.
+  test when the directory is absent.
 - Create the state with the WordPress API: `wp_insert_post()`,
   `wp_insert_user()`, `wp_set_current_user()`, `update_option()`.
 - Delete what you create. The database survives between the tests of one run.
@@ -130,11 +151,39 @@ bootstrap fails. Use PHP 8.4, the version of the CI and of `wp-env`.
 configuration.
 
 ```ts
-import { nextCount } from '../../../sources/client/blocks/example/counter';
+import { isPreviewable } from '../../../sources/client/preview/policy';
+import type {
+	LinkFacts,
+	PolicyOptions,
+} from '../../../sources/client/preview/policy';
 
-describe( 'nextCount', () => {
-	it( 'raises the count by one', () => {
-		expect( nextCount( 1 ) ).toBe( 2 );
+const options: PolicyOptions = {
+	siteOrigin: 'https://example.com',
+	homePath: '/',
+	currentPath: '/blog/current-post/',
+	denyClass: 'no-rinkukado',
+};
+
+const facts = ( overrides: Partial< LinkFacts > = {} ): LinkFacts => ( {
+	href: 'https://example.com/blog/other-post/',
+	target: null,
+	hasDownload: false,
+	classes: [],
+	...overrides,
+} );
+
+describe( 'isPreviewable', () => {
+	it( 'accepts an internal link to another post', () => {
+		expect( isPreviewable( facts(), options ) ).toBe( true );
+	} );
+
+	it( 'rejects another origin', () => {
+		expect(
+			isPreviewable(
+				facts( { href: 'https://other.test/post/' } ),
+				options
+			)
+		).toBe( false );
 	} );
 } );
 ```
@@ -160,51 +209,38 @@ must run. `pnpm test:e2e` starts `wp-env` on its own, on
 `http://localhost:8877`.
 
 ```ts
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@wordpress/e2e-test-utils-playwright';
 
-test( 'increments the counter on click', async ( { page } ) => {
-	await page.goto( '/?rinkukado-test=1' );
+async function hoverAndWaitForPreview(
+	page: any,
+	selector: string
+): Promise< void > {
+	const response = page.waitForResponse( /rinkukado\/v1\/preview/ );
+	await page.hover( selector );
+	await response;
+}
 
-	const block = page.locator( '.wp-block-rinkukado-example' ).first();
-
-	await block.locator( '.rinkukado-example__button' ).click();
-
-	await expect(
-		block.locator( '.rinkukado-example__value' )
-	).toHaveText( '1' );
+test.describe( 'the popover on a desktop', () => {
+	test.beforeEach( async ( { page } ) => {
+		await page.goto( '/rinkukado-links/' );
+	} );
+	test( 'shows the title, the excerpt and the thumbnail', async ( {
+		page,
+	} ) => {
+		await hoverAndWaitForPreview( page, '#link-thumb' );
+		const dialog = page.getByRole( 'dialog' );
+		await expect( dialog ).toBeVisible();
+		await expect( dialog ).toContainText( 'A post with a thumbnail' );
+	} );
 } );
 ```
 
 Run `pnpm build` first. Playwright tests the build output, not the sources.
 
-### Render a block that has no inserter
-
-The example block sets `"inserter": false`, so you cannot add it from the
-editor. Put a mu-plugin in `tests/e2e/mu-plugins/`. `.wp-env.json` maps that
-directory into WordPress, so the file loads on every request.
-
-```php
-<?php
-
-declare(strict_types=1);
-
-add_action('template_redirect', static function (): void {
-    // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-    if (!isset($_GET['rinkukado-test'])) {
-        return;
-    }
-
-    add_filter(
-        'the_content',
-        static function (string $content): string {
-            return do_blocks('<!-- wp:rinkukado/example /-->') . $content;
-        }
-    );
-});
-```
-
-The query parameter keeps the helper inert on every other request, so one
-mu-plugin can serve many specs.
+`tests/e2e/mu-plugins/rinkukado-fixtures.php` sets the permalink structure of
+the test site on its own, on the first request after the install. It also
+creates the posts and the links that the specs need. No manual setup step
+runs before the suite.
 
 ### Artifacts
 
