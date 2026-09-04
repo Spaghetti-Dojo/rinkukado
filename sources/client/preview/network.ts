@@ -6,6 +6,12 @@ import type { Preview } from './types';
 export type LoadResult = Preview | 'unavailable' | 'aborted';
 
 /**
+ * What the page session knows about a href, without a new request.
+ * `unknown` covers both a href never requested and one still in flight.
+ */
+export type Availability = 'unknown' | 'available' | 'unavailable';
+
+/**
  * The values that the request needs from the server state.
  */
 export type Endpoint = { url: string; nonce: string };
@@ -74,6 +80,7 @@ async function requestPreview(
 export type Fetcher = {
 	load: ( href: string, endpoint: Endpoint ) => Promise< LoadResult >;
 	abort: ( href: string | null ) => void;
+	availability: ( href: string ) => Availability;
 };
 
 async function settle(
@@ -175,6 +182,18 @@ function abortFetch( fetchState: FetchState, href: string | null ): void {
 	pending.controller.abort();
 }
 
+// Reads the cache without starting or awaiting a request. A href still in
+// flight, or never requested, is `unknown`.
+function availabilityOf( fetchState: FetchState, href: string ): Availability {
+	const cached = fetchState.cache.get( href );
+
+	if ( cached === undefined ) {
+		return 'unknown';
+	}
+
+	return cached === 'unavailable' ? 'unavailable' : 'available';
+}
+
 /**
  * Builds a fetcher that caches every settled result for the page session.
  */
@@ -186,5 +205,7 @@ export function createFetcher(): Fetcher {
 		abort: ( href ): void => {
 			abortFetch( fetchState, href );
 		},
+		availability: ( href ): Availability =>
+			availabilityOf( fetchState, href ),
 	};
 }

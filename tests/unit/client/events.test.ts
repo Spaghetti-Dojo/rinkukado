@@ -5,7 +5,11 @@ import type {
 	EventContext,
 	Refs,
 } from '../../../sources/client/preview/context';
-import type { IntentEvent } from '../../../sources/client/preview/intent';
+import type {
+	IntentEvent,
+	Machine,
+} from '../../../sources/client/preview/intent';
+import type { Availability } from '../../../sources/client/preview/network';
 
 type Harness = {
 	context: EventContext;
@@ -20,10 +24,11 @@ function createRefs(): Refs {
 		dialog: null,
 		closeButton: null,
 		activeLink: null,
+		pendingTap: null,
 	};
 }
 
-function createHarness(): Harness {
+function createHarness( overrides: Partial< EventContext > = {} ): Harness {
 	const sent: Array< IntentEvent > = [];
 	const refs: Refs = createRefs();
 
@@ -41,34 +46,78 @@ function createHarness(): Harness {
 			currentPath: '/current/',
 			denyClass: 'rinkukado-no-preview',
 		} ),
+		availability: (): Availability => 'unknown',
+		...overrides,
 	};
 
 	return { context, refs, sent };
+}
+
+// Binds a harness to the root of the fixture, which every test shares.
+function bindHarness( overrides: Partial< EventContext > = {} ): Harness {
+	const harness = createHarness( overrides );
+	const root = document.getElementById( 'root' )!;
+
+	bind( root, harness.context );
+
+	return harness;
 }
 
 function types( sent: Array< IntentEvent > ): Array< string > {
 	return sent.map( ( event ) => event.type );
 }
 
-// eslint-disable-next-line max-lines-per-function
-describe( 'the delegated listeners', () => {
-	beforeEach( () => {
-		window.matchMedia = jest.fn().mockReturnValue( { matches: false } );
+// A pointer that both hovers and is fine, so `isCoarse` reports the hover
+// behavior.
+function useFinePointer(): void {
+	window.matchMedia = jest.fn( ( query: string ) => ( {
+		matches: query === '(hover: hover) and (pointer: fine)',
+	} ) ) as unknown as typeof window.matchMedia;
+}
 
-		document.body.innerHTML =
-			'<main id="root">' +
-			'<a id="link" href="/post/one/">read <strong id="child">this</strong></a>' +
-			'<span id="outside">outside</span>' +
-			'</main>';
+// No pointer both hovers and is fine, so `isCoarse` reports the tap
+// behavior.
+function useCoarsePointer(): void {
+	window.matchMedia = jest.fn().mockReturnValue( { matches: false } );
+}
+
+function openMachine( linkHref: string ): Machine {
+	return {
+		phase: 'open',
+		href: linkHref,
+		prefetchAt: null,
+		openAt: null,
+		closeAt: null,
+	};
+}
+
+function clickLink( link: Element ): MouseEvent {
+	const event = new MouseEvent( 'click', {
+		bubbles: true,
+		cancelable: true,
 	} );
 
+	link.dispatchEvent( event );
+
+	return event;
+}
+
+beforeEach( () => {
+	useFinePointer();
+
+	document.body.innerHTML =
+		'<main id="root">' +
+		'<a id="link" href="/post/one/">read <strong id="child">this</strong></a>' +
+		'<span id="outside">outside</span>' +
+		'</main>';
+} );
+
+// eslint-disable-next-line max-lines-per-function
+describe( 'the delegated listeners', () => {
 	it( 'sends no leave when the pointer crosses into a child of the link', () => {
-		const harness = createHarness();
-		const root = document.getElementById( 'root' )!;
+		const harness = bindHarness();
 		const link = document.getElementById( 'link' )!;
 		const child = document.getElementById( 'child' )!;
-
-		bind( root, harness.context );
 
 		link.dispatchEvent(
 			new MouseEvent( 'pointerout', {
@@ -81,12 +130,9 @@ describe( 'the delegated listeners', () => {
 	} );
 
 	it( 'sends leave when the pointer moves off the link', () => {
-		const harness = createHarness();
-		const root = document.getElementById( 'root' )!;
+		const harness = bindHarness();
 		const link = document.getElementById( 'link' )!;
 		const outside = document.getElementById( 'outside' )!;
-
-		bind( root, harness.context );
 
 		link.dispatchEvent(
 			new MouseEvent( 'pointerout', {
@@ -114,8 +160,7 @@ describe( 'the delegated listeners', () => {
 	} );
 
 	it( 'sends escape on Escape while the focus sits on body', () => {
-		const harness = createHarness();
-		harness.context.isOpen = (): boolean => true;
+		const harness = createHarness( { isOpen: (): boolean => true } );
 		const root = document.getElementById( 'root' )!;
 
 		bind( root, harness.context );
@@ -126,5 +171,46 @@ describe( 'the delegated listeners', () => {
 		);
 
 		expect( types( harness.sent ) ).toEqual( [ 'escape' ] );
+	} );
+} );
+
+describe( 'onClick of a href already known unavailable', () => {
+	it( 'lets the tap navigate, without sending it to the machine', () => {
+		useCoarsePointer();
+
+		const harness = bindHarness( {
+			availability: (): Availability => 'unavailable',
+		} );
+		const event = clickLink( document.getElementById( 'link' )! );
+
+		expect( event.defaultPrevented ).toBe( false );
+		expect( harness.sent ).toEqual( [] );
+		expect( harness.refs.pendingTap ).toBeNull();
+	} );
+} );
+
+describe( 'onClick on a coarse device', () => {
+	beforeEach( () => {
+		useCoarsePointer();
+	} );
+
+	it( 'prevents the default and sends tap of a href not yet known', () => {
+		const harness = bindHarness();
+		const link = document.getElementById( 'link' )! as HTMLAnchorElement;
+		const event = clickLink( link );
+
+		expect( event.defaultPrevented ).toBe( true );
+		expect( types( harness.sent ) ).toEqual( [ 'tap' ] );
+		expect( harness.refs.pendingTap ).toBe( link.href );
+	} );
+
+	it( 'prevents the default on the second tap, so only one path navigates', () => {
+		const link = document.getElementById( 'link' )! as HTMLAnchorElement;
+		const machine = (): Machine => openMachine( link.href );
+		const harness = bindHarness( { machine } );
+		const event = clickLink( link );
+
+		expect( event.defaultPrevented ).toBe( true );
+		expect( types( harness.sent ) ).toEqual( [ 'tap' ] );
 	} );
 } );

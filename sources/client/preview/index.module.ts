@@ -35,7 +35,29 @@ const refs: Refs = {
 	dialog: null,
 	closeButton: null,
 	activeLink: null,
+	pendingTap: null,
 };
+
+// Keeps `state.isSheet` correct on every rotation and resize, not only at
+// the moment the popover opens. A change listener guards against a second
+// registration when `init` runs more than once.
+let sheetQueryBound = false;
+
+function watchSheetQuery(): void {
+	if ( sheetQueryBound ) {
+		return;
+	}
+
+	sheetQueryBound = true;
+
+	const query = window.matchMedia( state.sheetQuery );
+
+	state.isSheet = query.matches;
+
+	query.addEventListener( 'change', ( event ): void => {
+		state.isSheet = event.matches;
+	} );
+}
 
 const { state }: { state: State } = store( 'rinkukado', {
 	state: {} as State,
@@ -78,6 +100,7 @@ const { state }: { state: State } = store( 'rinkukado', {
 				return;
 			}
 
+			watchSheetQuery();
 			bind( root, context );
 		},
 	},
@@ -110,7 +133,6 @@ function applyPreview( preview: Preview ): void {
 }
 
 function revealDialog(): void {
-	state.isSheet = window.matchMedia( state.sheetQuery ).matches;
 	state.isOpen = true;
 
 	if ( refs.activeLink !== null ) {
@@ -126,11 +148,32 @@ function revealDialog(): void {
 	}
 }
 
+// A tap of this href had its navigation prevented while the result was
+// unknown. Once the fetch fails, the link must still keep its normal
+// behavior, so a pending tap navigates here instead.
+function settleFailure( href: string ): void {
+	const wasPendingTap = refs.pendingTap === href;
+
+	refs.pendingTap = null;
+	driver.send( { type: 'unavailable', href } );
+
+	if ( wasPendingTap ) {
+		window.location.assign( href );
+	}
+}
+
 async function open( href: string ): Promise< void > {
 	const result = await fetcher.load( href, endpointOf() );
 
-	if ( result === 'unavailable' || result === 'aborted' ) {
-		driver.reset();
+	if ( result === 'aborted' ) {
+		refs.pendingTap = null;
+		driver.send( { type: 'unavailable', href } );
+
+		return;
+	}
+
+	if ( result === 'unavailable' ) {
+		settleFailure( href );
 
 		return;
 	}
@@ -140,6 +183,7 @@ async function open( href: string ): Promise< void > {
 		return;
 	}
 
+	refs.pendingTap = null;
 	applyPreview( result );
 	revealDialog();
 }
@@ -191,4 +235,5 @@ const context: EventContext = {
 	isOpen: (): boolean => state.isOpen,
 	isSheet: (): boolean => state.isSheet,
 	policyOptions,
+	availability: ( href: string ) => fetcher.availability( href ),
 };

@@ -121,6 +121,9 @@ function onFocusOut( context: EventContext, event: Event ): void {
 	);
 }
 
+// A href already known unavailable keeps its normal behavior. Otherwise
+// the machine, not the browser, drives the navigation: `tap` answers with
+// an `open` command or a `navigate` command, never both.
 function onClick( context: EventContext, event: Event ): void {
 	if ( ! isCoarse() ) {
 		return;
@@ -128,18 +131,16 @@ function onClick( context: EventContext, event: Event ): void {
 
 	const link = linkOf( context, event.target );
 
-	if ( link === null ) {
+	if (
+		link === null ||
+		context.availability( link.href ) === 'unavailable'
+	) {
 		return;
 	}
 
-	const machine = context.machine();
-
-	// The first tap opens the sheet. The second tap of the same link navigates.
-	if ( ! ( machine.phase === 'open' && machine.href === link.href ) ) {
-		event.preventDefault();
-	}
-
+	event.preventDefault();
 	context.refs.activeLink = link;
+	context.refs.pendingTap = link.href;
 	context.send( { type: 'tap', href: link.href } );
 }
 
@@ -175,15 +176,11 @@ function onKeyDown( context: EventContext, event: Event ): void {
 }
 
 function onDocumentClick( context: EventContext, event: Event ): void {
-	if ( ! context.isOpen() ) {
-		return;
-	}
-
-	if ( staysInDialog( context.refs.dialog, event.target ) ) {
-		return;
-	}
-
-	if ( linkOf( context, event.target ) !== null ) {
+	if (
+		! context.isOpen() ||
+		staysInDialog( context.refs.dialog, event.target ) ||
+		linkOf( context, event.target ) !== null
+	) {
 		return;
 	}
 
