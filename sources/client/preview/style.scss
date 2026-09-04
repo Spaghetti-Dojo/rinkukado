@@ -1,3 +1,164 @@
+// The breakpoint of WordPress. $break-medium is 782px in the branches wp/6.9,
+// wp/7.0 and wp/7.1. The value lives here, so the plugin needs no package for
+// one number.
+$break-medium: 782px;
+
 .rinkukado {
+	--rinkukado-background: #fff;
+	--rinkukado-text: #1e1e1e;
+	--rinkukado-muted: #50575e;
+	--rinkukado-border: #e0e0e0;
+	--rinkukado-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+	--rinkukado-radius: 8px;
+	--rinkukado-z-index: 100000;
+
 	display: contents;
+}
+
+.rinkukado__dialog {
+	position: fixed;
+	z-index: var(--rinkukado-z-index);
+	inline-size: min(28rem, calc(100vi - 2rem));
+	padding: 1rem;
+	display: grid;
+	grid-template-columns: 1fr;
+	grid-template-areas:
+		"title"
+		"excerpt"
+		"cta";
+	gap: 0.5rem 1rem;
+	background: var(--rinkukado-background);
+	color: var(--rinkukado-text);
+	border: 1px solid var(--rinkukado-border);
+	border-radius: var(--rinkukado-radius);
+	box-shadow: var(--rinkukado-shadow);
+
+	&[hidden] {
+		display: none;
+	}
+}
+
+// The second column exists only when the post holds a thumbnail.
+.rinkukado--with-media {
+	grid-template-columns: 1fr auto;
+	grid-template-areas:
+		"title media"
+		"excerpt media"
+		"cta cta";
+}
+
+.rinkukado__close {
+	position: absolute;
+	inset-block-start: 0.25rem;
+	inset-inline-end: 0.25rem;
+	inline-size: 2rem;
+	block-size: 2rem;
+	padding: 0;
+	background: transparent;
+	border: 0;
+	color: var(--rinkukado-muted);
+	cursor: pointer;
+	font-size: 1.25rem;
+	line-height: 1;
+}
+
+.rinkukado__title {
+	grid-area: title;
+	padding-inline-end: 2rem;
+	font-weight: 600;
+	text-decoration: none;
+	color: inherit;
+}
+
+.rinkukado__excerpt {
+	grid-area: excerpt;
+	margin: 0;
+	color: var(--rinkukado-muted);
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 4;
+	overflow: hidden;
+}
+
+.rinkukado__media {
+	grid-area: media;
+	inline-size: 7.5rem;
+	block-size: 7.5rem;
+	object-fit: cover;
+	border-radius: calc(var(--rinkukado-radius) / 2);
+
+	.rinkukado__dialog:not(.rinkukado--with-media) & {
+		display: none;
+	}
+}
+
+.rinkukado__cta {
+	grid-area: cta;
+	justify-self: start;
+	font-weight: 600;
+}
+
+// The browsers that support anchor positioning place the dialog themselves.
+@supports (anchor-name: --a) {
+
+	.rinkukado__dialog:not(.rinkukado--sheet) {
+		position-anchor: --rinkukado-anchor;
+		position-area: block-start span-inline-end;
+		position-try-fallbacks: flip-block, flip-inline;
+		margin: 0.5rem;
+	}
+}
+
+// The sheet serves every coarse pointer, at any width, and a narrow window on
+// a desktop.
+@media (pointer: coarse), (max-width: #{$break-medium - 1px}) {
+
+	.rinkukado__dialog {
+		position: fixed;
+		inset-inline: 0;
+		inset-block-end: 0;
+		inset-block-start: auto;
+		inline-size: 100%;
+		max-block-size: 60vb;
+		overflow: auto;
+		border-radius: var(--rinkukado-radius) var(--rinkukado-radius) 0 0;
+		border-inline: 0;
+		border-block-end: 0;
+		padding-block-end: calc(1rem + env(safe-area-inset-bottom));
+	}
+}
+
+.rinkukado__dialog:not([hidden]) {
+	animation: rinkukado-appear 120ms ease-out;
+}
+
+@keyframes rinkukado-appear {
+
+	from {
+		opacity: 0;
+		transform: translateY(0.25rem);
+	}
+
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+	.rinkukado__dialog:not([hidden]) {
+		animation: none;
+	}
+}
+
+@media (prefers-color-scheme: dark) {
+
+	.rinkukado {
+		--rinkukado-background: #1e1e1e;
+		--rinkukado-text: #f0f0f0;
+		--rinkukado-muted: #c3c4c7;
+		--rinkukado-border: #3c434a;
+		--rinkukado-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+	}
 }
