@@ -26,10 +26,10 @@ final readonly class Excerpt
         $manual = trim((string) $post->post_excerpt);
 
         if ($manual !== '') {
-            return $this->clean($manual);
+            return $this->clean($manual, false);
         }
 
-        $content = $this->clean((string) $post->post_content);
+        $content = $this->clean((string) $post->post_content, true);
 
         if ($content === '') {
             return '';
@@ -38,10 +38,23 @@ final readonly class Excerpt
         return wp_trim_words($content, $this->length, '…');
     }
 
-    private function clean(string $text): string
+    /**
+     * Cleans the text the way core builds an excerpt: no block, no
+     * shortcode, then the `the_content` filter, then no tag. A plugin that
+     * hides the body of a post through that filter must hide it here too,
+     * so `$filterContent` runs it only for the content fallback, never for
+     * a manual excerpt.
+     */
+    private function clean(string $text, bool $filterContent): string
     {
         $text = excerpt_remove_blocks($text);
         $text = strip_shortcodes($text);
+
+        if ($filterContent) {
+            $filtered = apply_filters('the_content', $text);
+            $text = is_string($filtered) ? $filtered : '';
+        }
+
         $text = wp_strip_all_tags($text);
 
         return trim(preg_replace('/\s+/u', ' ', $text) ?? '');

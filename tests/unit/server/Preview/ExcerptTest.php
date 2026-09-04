@@ -52,3 +52,16 @@ it('removes the tags of a manual excerpt', function (): void {
 it('returns an empty string when the post holds no text', function (): void {
     expect(Excerpt::new(30)->forPost(post('', '')))->toBe('');
 });
+
+it('returns an empty excerpt when the_content hides the body', function (): void {
+    Functions\when('apply_filters')->justReturn('');
+
+    expect(Excerpt::new(30)->forPost(post('', '<p>one two three</p>')))->toBe('');
+});
+
+it('leaves the manual excerpt alone, without the_content', function (): void {
+    Functions\expect('apply_filters')->never();
+
+    expect(Excerpt::new(30)->forPost(post('The manual excerpt', 'ignored')))
+        ->toBe('The manual excerpt');
+});
