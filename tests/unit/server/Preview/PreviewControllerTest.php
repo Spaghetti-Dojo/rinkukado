@@ -49,6 +49,8 @@ beforeEach(function (): void {
     );
     Functions\when('url_to_postid')->justReturn(0);
     Functions\when('__')->returnArg();
+    Functions\when('get_the_title')->justReturn('The title');
+    Functions\when('get_permalink')->justReturn('https://example.com/post/');
 });
 
 it('rejects a URL of another host', function (): void {

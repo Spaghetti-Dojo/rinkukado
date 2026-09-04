@@ -44,6 +44,22 @@ final readonly class PreviewRepository
      */
     public function forPost(\WP_Post $post): array
     {
+        $payload = $this->cacheablePayload($post);
+
+        // The title and the permalink run outside the cache: a filter of
+        // either one that varies per visitor must never freeze on the
+        // first visitor who built the cached entry.
+        $payload['title'] = (string) get_the_title($post);
+        $payload['permalink'] = (string) get_permalink($post);
+
+        return $payload;
+    }
+
+    /**
+     * @return Payload
+     */
+    private function cacheablePayload(\WP_Post $post): array
+    {
         $key = $this->key((int) $post->ID);
         $cached = wp_cache_get($key, self::CACHE_GROUP);
 
@@ -54,9 +70,9 @@ final readonly class PreviewRepository
 
         $payload = [
             'id' => (int) $post->ID,
-            'title' => (string) get_the_title($post),
+            'title' => '',
             'excerpt' => $this->excerpt->forPost($post),
-            'permalink' => (string) get_permalink($post),
+            'permalink' => '',
             'thumbnail' => $this->thumbnail($post),
         ];
 
@@ -93,9 +109,35 @@ final readonly class PreviewRepository
         ];
     }
 
+    /**
+     * Flushes the payload of the post that changed. An attachment carries
+     * no payload of its own, but a change of it, such as a replaced file
+     * or an edited alt text, must still flush the payload of the post
+     * that uses it as a thumbnail: the attachment id never matches
+     * `key()`, so nothing would clear that payload otherwise.
+     */
     private function flush(int $postId): void
     {
         wp_cache_delete($this->key($postId), self::CACHE_GROUP);
+
+        $parentId = $this->thumbnailParentId($postId);
+
+        if ($parentId !== null) {
+            wp_cache_delete($this->key($parentId), self::CACHE_GROUP);
+        }
+    }
+
+    private function thumbnailParentId(int $postId): ?int
+    {
+        $post = get_post($postId);
+
+        if ($post === null || $post->post_type !== 'attachment') {
+            return null;
+        }
+
+        $parentId = (int) $post->post_parent;
+
+        return $parentId > 0 ? $parentId : null;
     }
 
     private function key(int $postId): string
