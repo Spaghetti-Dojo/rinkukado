@@ -79,12 +79,26 @@ sources/server/
       Excerpt.php
 sources/client/preview/
   index.module.ts
-  policy.ts
+  context.ts
+  dom.ts
+  driver.ts
+  events.ts
   intent.ts
+  network.ts
+  policy.ts
   position.ts
   types.ts
   style.scss
 ```
+
+The client is more than one module. `index.module.ts` holds the store; the
+rest of the logic sits behind it in its own file, one concern per file:
+`context.ts` (the shared types of the event handlers), `dom.ts` (DOM reads
+and writes), `driver.ts` (the scheduler of `intent.ts`), `events.ts` (the
+delegated listeners), `intent.ts` (the state machine), `network.ts` (the
+fetcher and its cache), and `policy.ts` (which link is previewable). The
+repository's own `max-lines` and `max-lines-per-function` ESLint rules
+forced the split: a single file of this size would not pass them.
 
 Names from the template initializer: plugin name `Rinkukado`, slug `rinkukado`,
 text domain `rinkukado`, namespace `SpaghettiDojo\Rinkukado`, store name
@@ -107,7 +121,9 @@ Filters, in the naming convention of the template:
 - `rinkukado.popover.root-selector` — default `main`.
 - `rinkukado.popover.deny-class` — default `no-rinkukado`.
 - `rinkukado.popover.timings` — the three delays in milliseconds.
-- `rinkukado.rest.post-types` — default: every public post type.
+- `rinkukado.rest.post-types` — default: every public post type except
+  `attachment`. Section 8 keeps an attachment preview out of scope; the
+  filter can add `attachment` back for a site that wants it.
 - `rinkukado.rest.excerpt-length` — default 30 words.
 - `rinkukado.rest.payload` — the payload, before the response.
 
@@ -212,8 +228,10 @@ covered.
 
 Each event runs `event.target.closest('a')`, then the policy.
 
-The store owns one `AbortController` and one `Map` of href to result. A result
-is either a payload or the marker `unavailable`.
+The store, through `network.ts`, keeps one request in flight per href, each
+with its own `AbortController`, and one `Map` of href to settled result. A
+settled result is either a payload or the marker `unavailable`; a href still
+in flight or never requested holds no entry.
 
 ### 5.2 policy.ts
 
@@ -236,18 +254,22 @@ so a second hover is silent.
 
 ### 5.3 intent.ts
 
-A pure state machine over `idle → intent → opening → open → closing`. It holds
-no DOM access and no timer of its own; the store passes the current time and
-receives the actions to schedule. Jest drives it with a fake clock.
+A pure state machine over three phases, `idle`, `intent` and `open`, plus the
+deadlines it schedules: `prefetchAt`, `openAt` and `closeAt`. It holds no DOM
+access and no timer of its own; `driver.ts` passes the current time and runs
+the commands the machine returns. Jest drives it with a fake clock, at the
+level of the reducer and at the level of the driver.
 
 - Pointer enters a link: start the prefetch at 80 ms, the open at 300 ms.
 - Pointer leaves the link and the popover: close after 200 ms.
 - Pointer returns inside the close delay: cancel the close.
 - Pointer leaves before the payload arrives: abort the fetch, never open.
+- A link opens while another one is open: close the old one first.
 - First tap: open the sheet, stop the navigation.
 - Second tap on the same link: navigate.
 - Focus on a link: open after the same delay as the hover.
 - Escape: close, and return focus to the link.
+- A fetch that settles unavailable, while its href is still open: close.
 
 ### 5.4 position.ts
 
