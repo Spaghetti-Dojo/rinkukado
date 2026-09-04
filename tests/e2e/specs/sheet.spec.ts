@@ -73,3 +73,19 @@ test.describe( 'the sheet navigation and closing', () => {
 		await expect( page ).toHaveURL( /rinkukado-links/ );
 	} );
 } );
+
+test.describe( 'a tap of a link whose preview fails', () => {
+	test.beforeEach( async ( { page } ) => {
+		await page.goto( '/rinkukado-links/' );
+	} );
+
+	// The category endpoint answers 404: the preview is unavailable, and
+	// the very first tap, whose result is not yet known, must still end
+	// in a navigation, not in nothing. The navigation itself only fires
+	// once the failed fetch settles, so the test waits for the URL
+	// rather than racing the network response.
+	test( 'navigates to the category page', async ( { page } ) => {
+		await page.tap( '#link-category' );
+		await page.waitForURL( /\/category\// );
+	} );
+} );
