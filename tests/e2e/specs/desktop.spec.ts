@@ -8,11 +8,6 @@ test.describe( 'the popover on a desktop', () => {
 	} );
 
 	test( 'shows the title, the excerpt and the thumbnail', async ( { page } ) => {
-		// The production build of build/preview/index.js throws
-		// "i.d is not a function" on load. The popover never opens.
-		// See task-14-report.md for the defect.
-		test.fixme();
-
 		const response = page.waitForResponse( previewRequest );
 		await page.hover( '#link-thumb' );
 		await response;
@@ -27,9 +22,6 @@ test.describe( 'the popover on a desktop', () => {
 	} );
 
 	test( 'uses one column when the post holds no thumbnail', async ( { page } ) => {
-		// Same build defect as above: the popover never opens.
-		test.fixme();
-
 		const response = page.waitForResponse( previewRequest );
 		await page.hover( '#link-plain' );
 		await response;
@@ -43,9 +35,6 @@ test.describe( 'the popover on a desktop', () => {
 	test( 'stays inside the viewport near the bottom of the page', async ( {
 		page,
 	} ) => {
-		// Same build defect as above: the popover never opens.
-		test.fixme();
-
 		await page.locator( '#link-bottom' ).scrollIntoViewIfNeeded();
 		const response = page.waitForResponse( previewRequest );
 		await page.hover( '#link-bottom' );
@@ -63,9 +52,6 @@ test.describe( 'the popover on a desktop', () => {
 	} );
 
 	test( 'closes when the pointer leaves', async ( { page } ) => {
-		// Same build defect as above: the popover never opens.
-		test.fixme();
-
 		const response = page.waitForResponse( previewRequest );
 		await page.hover( '#link-plain' );
 		await response;
@@ -77,7 +63,12 @@ test.describe( 'the popover on a desktop', () => {
 	} );
 
 	test( 'closes on escape', async ( { page } ) => {
-		// Same build defect as above: the popover never opens.
+		// The client binds `keydown` on the root of the region only, so a
+		// hover leaves the focus on `body` and the key event never reaches
+		// the root. The dialog stays visible. The same key closes the
+		// dialog once the focus sits on the link, which keyboard.spec.ts
+		// proves. A fix belongs in sources/client/preview/events.ts, which
+		// this task must not change.
 		test.fixme();
 
 		const response = page.waitForResponse( previewRequest );
@@ -91,9 +82,6 @@ test.describe( 'the popover on a desktop', () => {
 	} );
 
 	test( 'goes to the article on a click of the title', async ( { page } ) => {
-		// Same build defect as above: the popover never opens.
-		test.fixme();
-
 		const response = page.waitForResponse( previewRequest );
 		await page.hover( '#link-plain' );
 		await response;
@@ -133,9 +121,6 @@ test.describe( 'the popover on a desktop', () => {
 	} );
 
 	test( 'asks once for the same link', async ( { page } ) => {
-		// Same build defect as above: the popover never opens.
-		test.fixme();
-
 		const requests: string[] = [];
 
 		page.on( 'request', ( request ) => {

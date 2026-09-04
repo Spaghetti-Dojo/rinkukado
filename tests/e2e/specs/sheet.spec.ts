@@ -16,11 +16,6 @@ test.describe( 'the sheet on a touch device', () => {
 	} );
 
 	test( 'opens at the bottom on the first tap', async ( { page } ) => {
-		// The production build of build/preview/index.js throws
-		// "i.d is not a function" on load. The popover never opens.
-		// See task-14-report.md for the defect.
-		test.fixme();
-
 		const response = page.waitForResponse( /rinkukado\/v1\/preview/ );
 		await page.tap( '#link-plain' );
 		await response;
@@ -37,9 +32,6 @@ test.describe( 'the sheet on a touch device', () => {
 	} );
 
 	test( 'lets the page scroll while the sheet is open', async ( { page } ) => {
-		// Same build defect as above: the popover never opens.
-		test.fixme();
-
 		const response = page.waitForResponse( /rinkukado\/v1\/preview/ );
 		await page.tap( '#link-plain' );
 		await response;
@@ -47,16 +39,15 @@ test.describe( 'the sheet on a touch device', () => {
 
 		await page.mouse.wheel( 0, 400 );
 
-		expect( await page.evaluate( () => window.scrollY ) ).toBeGreaterThan(
-			0
-		);
+		// The browser applies the wheel after the call returns, so poll the
+		// offset instead of one immediate read.
+		await expect
+			.poll( async () => page.evaluate( () => window.scrollY ) )
+			.toBeGreaterThan( 0 );
 		await expect( page.getByRole( 'dialog' ) ).toBeVisible();
 	} );
 
 	test( 'navigates on the second tap', async ( { page } ) => {
-		// Same build defect as above: the popover never opens.
-		test.fixme();
-
 		const response = page.waitForResponse( /rinkukado\/v1\/preview/ );
 		await page.tap( '#link-plain' );
 		await response;
@@ -68,9 +59,6 @@ test.describe( 'the sheet on a touch device', () => {
 	} );
 
 	test( 'closes on the close button', async ( { page } ) => {
-		// Same build defect as above: the popover never opens.
-		test.fixme();
-
 		const response = page.waitForResponse( /rinkukado\/v1\/preview/ );
 		await page.tap( '#link-plain' );
 		await response;

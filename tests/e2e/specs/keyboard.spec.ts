@@ -4,11 +4,6 @@ test.describe( 'the keyboard path', () => {
 	test( 'opens on focus, enters the dialog and returns on escape', async ( {
 		page,
 	} ) => {
-		// The production build of build/preview/index.js throws
-		// "i.d is not a function" on load. The popover never opens.
-		// See task-14-report.md for the defect.
-		test.fixme();
-
 		await page.goto( '/rinkukado-links/' );
 
 		const response = page.waitForResponse( /rinkukado\/v1\/preview/ );
