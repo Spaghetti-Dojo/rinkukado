@@ -29,7 +29,8 @@ it('never caches the response of a logged in user', function (): void {
     $response = \Mockery::mock(\WP_REST_Response::class);
     $response->expects('header')->once()->with('Cache-Control', 'no-store');
 
-    Rest\Middlewares\Caching::new()($request, static fn (): \WP_REST_Response => $response);
+    expect(Rest\Middlewares\Caching::new()($request, static fn (): \WP_REST_Response => $response))
+        ->toBe($response);
 });
 
 it('sets no header on an error', function (): void {
