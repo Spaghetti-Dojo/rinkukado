@@ -10,62 +10,65 @@ const { defaultBrowserType: _defaultBrowserType, ...iPad } =
 
 test.use( { ...iPad } );
 
+async function getScrollY( page: any ): Promise< number > {
+	return page.evaluate( () => window.scrollY );
+}
+
+async function tapAndWaitForPreview(
+	page: any,
+	selector: string
+): Promise< void > {
+	const response = page.waitForResponse( /rinkukado\/v1\/preview/ );
+	await page.tap( selector );
+	await response;
+}
+
+async function pollScrollY( page: any ): Promise< void > {
+	await expect.poll( async () => getScrollY( page ) ).toBeGreaterThan( 0 );
+}
+
 test.describe( 'the sheet on a touch device', () => {
 	test.beforeEach( async ( { page } ) => {
 		await page.goto( '/rinkukado-links/' );
 	} );
 
 	test( 'opens at the bottom on the first tap', async ( { page } ) => {
-		const response = page.waitForResponse( /rinkukado\/v1\/preview/ );
-		await page.tap( '#link-plain' );
-		await response;
-
+		await tapAndWaitForPreview( page, '#link-plain' );
 		const dialog = page.getByRole( 'dialog' );
 		await expect( dialog ).toBeVisible();
-
 		const box = await dialog.boundingBox();
 		const height = page.viewportSize()?.height ?? 0;
-
 		expect( box ).not.toBeNull();
 		expect( box!.y + box!.height ).toBeCloseTo( height, 0 );
 		await expect( page ).toHaveURL( /rinkukado-links/ );
 	} );
-
-	test( 'lets the page scroll while the sheet is open', async ( { page } ) => {
-		const response = page.waitForResponse( /rinkukado\/v1\/preview/ );
-		await page.tap( '#link-plain' );
-		await response;
+	test( 'lets the page scroll while the sheet is open', async ( {
+		page,
+	} ) => {
+		await tapAndWaitForPreview( page, '#link-plain' );
 		await expect( page.getByRole( 'dialog' ) ).toBeVisible();
-
 		await page.mouse.wheel( 0, 400 );
-
-		// The browser applies the wheel after the call returns, so poll the
-		// offset instead of one immediate read.
-		await expect
-			.poll( async () => page.evaluate( () => window.scrollY ) )
-			.toBeGreaterThan( 0 );
+		await pollScrollY( page );
 		await expect( page.getByRole( 'dialog' ) ).toBeVisible();
+	} );
+} );
+
+test.describe( 'the sheet navigation and closing', () => {
+	test.beforeEach( async ( { page } ) => {
+		await page.goto( '/rinkukado-links/' );
 	} );
 
 	test( 'navigates on the second tap', async ( { page } ) => {
-		const response = page.waitForResponse( /rinkukado\/v1\/preview/ );
-		await page.tap( '#link-plain' );
-		await response;
+		await tapAndWaitForPreview( page, '#link-plain' );
 		await expect( page.getByRole( 'dialog' ) ).toBeVisible();
-
 		await page.tap( '#link-plain' );
-
 		await expect( page ).toHaveURL( /rinkukado-without-thumbnail/ );
 	} );
 
 	test( 'closes on the close button', async ( { page } ) => {
-		const response = page.waitForResponse( /rinkukado\/v1\/preview/ );
-		await page.tap( '#link-plain' );
-		await response;
+		await tapAndWaitForPreview( page, '#link-plain' );
 		await expect( page.getByRole( 'dialog' ) ).toBeVisible();
-
 		await page.getByRole( 'dialog' ).getByRole( 'button' ).tap();
-
 		await expect( page.getByRole( 'dialog' ) ).toBeHidden();
 		await expect( page ).toHaveURL( /rinkukado-links/ );
 	} );

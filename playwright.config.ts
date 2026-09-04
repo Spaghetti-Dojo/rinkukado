@@ -1,19 +1,19 @@
 import { defineConfig, devices } from '@playwright/test';
 import path from 'node:path';
 
-process.env.WP_ARTIFACTS_PATH ??= path.join( process.cwd(), 'artifacts' );
+process.env.WP_ARTIFACTS_PATH ??= path.join(process.cwd(), 'artifacts');
 
 const baseUrl = process.env.WP_BASE_URL || 'http://localhost:8877';
 
-export default defineConfig( {
-	reporter: process.env.CI ? [ [ 'github' ] ] : [ [ 'list' ] ],
-	forbidOnly: !! process.env.CI,
+export default defineConfig({
+	reporter: process.env.CI ? [['github']] : [['list']],
+	forbidOnly: !!process.env.CI,
 	workers: 1,
 	retries: process.env.CI ? 2 : 0,
 	timeout: 100_000,
 	reportSlowTests: null,
 	testDir: './tests/e2e/specs',
-	outputDir: path.join( process.env.WP_ARTIFACTS_PATH, 'test-results' ),
+	outputDir: path.join(process.env.WP_ARTIFACTS_PATH, 'test-results'),
 	use: {
 		baseURL: baseUrl,
 		headless: true,
@@ -38,7 +38,7 @@ export default defineConfig( {
 	projects: [
 		{
 			name: 'chromium',
-			use: { ...devices[ 'Desktop Chrome' ] },
+			use: { ...devices['Desktop Chrome'] },
 		},
 	],
-} );
+});

@@ -1,5 +1,5 @@
-const path = require( 'node:path' );
+const path = require('node:path');
 
 module.exports = require(
-	path.join( __dirname, 'node_modules', '@wordpress', 'prettier-config' )
+	path.join(__dirname, 'node_modules', '@wordpress', 'prettier-config')
 );
