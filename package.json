@@ -53,5 +53,12 @@
 		"test:e2e:ui": "playwright test --ui",
 		"test:unit": "wp-scripts test-unit-js --passWithNoTests",
 		"test:unit:watch": "wp-scripts test-unit-js --watch"
+	},
+	"jest": {
+		"preset": "@wordpress/jest-preset-default",
+		"moduleNameMapper": {
+			"^@wordpress/interactivity$": "<rootDir>/tests/unit/client/interactivity-mock.ts",
+			"\\.(scss|css)$": "<rootDir>/tests/unit/client/style-mock.ts"
+		}
 	}
 }
