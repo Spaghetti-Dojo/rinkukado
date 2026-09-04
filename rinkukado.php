@@ -33,6 +33,8 @@ autoload(__DIR__);
 add_action(
     'plugins_loaded',
     static function (): void {
-        package()->boot();
+        package()
+            ->addModule(Popover\Module::new())
+            ->boot();
     }
 );
