@@ -23,10 +23,12 @@ export function resolveRoot(
 }
 
 /**
- * Tells whether the pointer of the visitor is coarse, such as a touch screen.
+ * Tells whether the gesture of the visitor is coarse, such as a touch or a
+ * stylus. Only a fine pointer that can also hover gets the hover behavior;
+ * every other pointer gets the tap behavior.
  */
 export function isCoarse(): boolean {
-	return window.matchMedia( '(pointer: coarse)' ).matches;
+	return ! window.matchMedia( '(hover: hover) and (pointer: fine)' ).matches;
 }
 
 /**
@@ -97,7 +99,12 @@ export function placeDialog(
 	link: HTMLAnchorElement,
 	dialog: HTMLElement
 ): void {
-	if ( window.CSS.supports( 'anchor-name: --a' ) ) {
+	// `window` typings claim `CSS` always exists, but an older browser or a
+	// non-browser render target can leave it undefined. The cast below
+	// widens the local type back to optional, so the check below is real.
+	const css = ( window as { CSS?: typeof window.CSS } ).CSS;
+
+	if ( css?.supports( 'anchor-name: --a' ) === true ) {
 		placeWithAnchor( link );
 
 		return;
