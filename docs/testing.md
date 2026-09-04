@@ -5,7 +5,7 @@ directory and its own naming rule.
 
 | Layer | Runner | Files | Sees | Command |
 | --- | --- | --- | --- | --- |
-| PHP unit | Pest, Brain Monkey | `tests/unit/server/*Test.php` | no WordPress | `composer test:unit` |
+| PHP unit | Pest, Brain Monkey | `tests/unit/server/*Test.php` | no WordPress bootstrap | `composer test:unit` |
 | PHP integration | Pest, real WordPress | `tests/integration/server/*Test.php` | a full WordPress with this plugin active | `composer test:integration` |
 | Client unit | Jest, through `wp-scripts` | `tests/unit/client/*.test.ts` | no browser, no WordPress | `pnpm test:unit` |
 | End to end | Playwright, `wp-env` | `tests/e2e/specs/*.spec.ts` | a real browser on a real WordPress | `pnpm test:e2e` |
@@ -33,11 +33,15 @@ end to end test for logic that a unit test can cover.
 
 ## PHP unit tests
 
-Brain Monkey replaces WordPress. No WordPress file is loaded, so every
-WordPress function that the code calls must have an expectation. This layer is
-fast and it isolates one class.
+Brain Monkey replaces WordPress. The suite loads no WordPress bootstrap, so
+every WordPress function that the code calls must have an expectation. This
+layer is fast and it isolates one class.
 
-`tests/Pest.php` starts and stops Brain Monkey for you.
+`tests/Pest.php` starts and stops Brain Monkey for you. It also loads three
+real WordPress class files: `WP_Error`, `WP_HTTP_Response` and
+`WP_REST_Response`. Each file only declares a class, so it runs no code at
+load time. A test can then build a real response object, for example
+`new WP_REST_Response(...)`.
 
 ```php
 <?php
