@@ -134,3 +134,47 @@ it('refuses an attachment', function (): void {
 
     wp_delete_attachment($postId, true);
 });
+
+it('clears the cached payload of the post when its thumbnail changes', function (): void {
+    $postId = wp_insert_post([
+        'post_status' => 'publish',
+        'post_title' => 'With a thumbnail',
+    ]);
+    $attachmentId = wp_insert_attachment([
+        'post_title' => 'The image',
+        'post_status' => 'inherit',
+        'post_mime_type' => 'image/jpeg',
+        'post_parent' => $postId,
+    ]);
+
+    update_attached_file($attachmentId, 'first.jpg');
+    wp_update_attachment_metadata($attachmentId, [
+        'file' => 'first.jpg',
+        'width' => 320,
+        'height' => 240,
+        'sizes' => [],
+    ]);
+    set_post_thumbnail($postId, $attachmentId);
+
+    $url = get_permalink($postId);
+    $firstSrc = get($url)->get_data()['thumbnail']['src'];
+
+    update_attached_file($attachmentId, 'second.jpg');
+    wp_update_attachment_metadata($attachmentId, [
+        'file' => 'second.jpg',
+        'width' => 640,
+        'height' => 480,
+        'sizes' => [],
+    ]);
+    // A real edit of the attachment, such as a replaced file, saves the
+    // attachment post itself. That is what fires save_post and
+    // clean_post_cache with the ATTACHMENT id, not the parent's id.
+    wp_update_post(['ID' => $attachmentId, 'post_modified' => current_time('mysql')]);
+
+    $secondSrc = get($url)->get_data()['thumbnail']['src'];
+
+    expect($secondSrc)->not->toBe($firstSrc);
+
+    wp_delete_attachment($attachmentId, true);
+    wp_delete_post($postId, true);
+});
