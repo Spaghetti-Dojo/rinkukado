@@ -1,45 +1,20 @@
-/* eslint-disable max-lines */
-import { isCoarse, placeDialog, previewableLink, staysInDialog } from './dom';
+import { isCoarse, placeDialog, staysInDialog } from './dom';
+import { linkOf } from './context';
 
-import type { PolicyOptions } from './policy';
-import type { IntentEvent, Machine } from './intent';
-
-/**
- * The mutable references that the delegated listeners read and write.
- */
-export type Refs = {
-	machine: Machine;
-	frame: number | null;
-	dialog: HTMLElement | null;
-	closeButton: HTMLButtonElement | null;
-	activeLink: HTMLAnchorElement | null;
-};
+import type { EventContext } from './context';
 
 /**
- * What the event handlers need from the store, without importing it.
+ * Moves the focus back to the link when the visitor presses Shift and Tab
+ * on the close button of the dialog.
+ * @param context - The event context.
+ * @param event   - The keyboard event of the dialog.
  */
-export type EventContext = {
-	refs: Refs;
-	send: ( event: IntentEvent ) => void;
-	isOpen: () => boolean;
-	isSheet: () => boolean;
-	policyOptions: () => PolicyOptions;
-};
-
-function linkOf(
-	context: EventContext,
-	target: EventTarget | null
-): HTMLAnchorElement | null {
-	return previewableLink( target, context.policyOptions() );
-}
-
-function returnFocusOnShiftTab(
+export function returnFocusOnShiftTab(
 	context: EventContext,
 	event: KeyboardEvent
 ): void {
 	const { refs } = context;
 
-	// Shift and Tab on the close button returns to the link.
 	if (
 		event.key === 'Tab' &&
 		event.shiftKey &&
@@ -49,26 +24,6 @@ function returnFocusOnShiftTab(
 		event.preventDefault();
 		refs.activeLink.focus();
 	}
-}
-
-/**
- * Handles the keydown of the dialog: escape closes it, and a reverse tab
- * off the close button returns the focus to the link.
- * @param context - The event context.
- * @param event   - The keyboard event of the dialog.
- */
-export function onDialogKeydown(
-	context: EventContext,
-	event: KeyboardEvent
-): void {
-	if ( event.key === 'Escape' ) {
-		event.preventDefault();
-		context.send( { type: 'escape' } );
-
-		return;
-	}
-
-	returnFocusOnShiftTab( context, event );
 }
 
 function onPointerOver( context: EventContext, event: Event ): void {
@@ -86,6 +41,13 @@ function onPointerOver( context: EventContext, event: Event ): void {
 	context.send( { type: 'enter', href: link.href, at: Date.now() } );
 }
 
+function staysInLink(
+	link: HTMLAnchorElement,
+	related: EventTarget | null
+): boolean {
+	return related instanceof Node && link.contains( related );
+}
+
 function leaveUnlessInDialog(
 	context: EventContext,
 	event: Event,
@@ -95,7 +57,15 @@ function leaveUnlessInDialog(
 		return;
 	}
 
-	if ( linkOf( context, event.target ) === null ) {
+	const link = linkOf( context, event.target );
+
+	if ( link === null ) {
+		return;
+	}
+
+	// The pointer crossed into a child of the same link. The visitor did
+	// not leave the link, so the intent must stay alive.
+	if ( staysInLink( link, related ) ) {
 		return;
 	}
 
@@ -115,12 +85,9 @@ function onPointerOut( context: EventContext, event: Event ): void {
 }
 
 function onDialogPointerOut( context: EventContext, event: Event ): void {
-	if (
-		staysInDialog(
-			context.refs.dialog,
-			( event as PointerEvent ).relatedTarget
-		)
-	) {
+	const related = ( event as PointerEvent ).relatedTarget;
+
+	if ( staysInDialog( context.refs.dialog, related ) ) {
 		return;
 	}
 
@@ -128,7 +95,7 @@ function onDialogPointerOut( context: EventContext, event: Event ): void {
 }
 
 function cancelClose( context: EventContext ): void {
-	const { machine } = context.refs;
+	const machine = context.machine();
 
 	if ( machine.phase === 'open' && machine.href !== null ) {
 		context.send( { type: 'enter', href: machine.href, at: Date.now() } );
@@ -165,7 +132,7 @@ function onClick( context: EventContext, event: Event ): void {
 		return;
 	}
 
-	const { machine } = context.refs;
+	const machine = context.machine();
 
 	// The first tap opens the sheet. The second tap of the same link navigates.
 	if ( ! ( machine.phase === 'open' && machine.href === link.href ) ) {
@@ -257,36 +224,31 @@ function onViewportChange( context: EventContext ): void {
 	} );
 }
 
-function attachElementListeners(
-	element: Element,
+type Handler = ( context: EventContext, event: Event ) => void;
+
+const rootHandlers: Record< string, Handler > = {
+	pointerover: onPointerOver,
+	pointerout: onPointerOut,
+	focusin: onFocusIn,
+	focusout: onFocusOut,
+	click: onClick,
+	keydown: onKeyDown,
+};
+
+const dialogHandlers: Record< string, Handler > = {
+	pointerover: cancelClose,
+	pointerout: onDialogPointerOut,
+};
+
+function attach(
+	target: EventTarget,
+	handlers: Record< string, Handler >,
 	context: EventContext
 ): void {
-	element.addEventListener( 'pointerover', ( event ) => {
-		onPointerOver( context, event );
-	} );
-	element.addEventListener( 'pointerout', ( event ) => {
-		onPointerOut( context, event );
-	} );
-	element.addEventListener( 'focusin', ( event ) => {
-		onFocusIn( context, event );
-	} );
-	element.addEventListener( 'focusout', ( event ) => {
-		onFocusOut( context, event );
-	} );
-	element.addEventListener( 'click', ( event ) => {
-		onClick( context, event );
-	} );
-	element.addEventListener( 'keydown', ( event ) => {
-		onKeyDown( context, event );
-	} );
-}
-
-function attachDialogListeners( refs: Refs, context: EventContext ): void {
-	refs.dialog?.addEventListener( 'pointerover', () => {
-		cancelClose( context );
-	} );
-	refs.dialog?.addEventListener( 'pointerout', ( event ) => {
-		onDialogPointerOut( context, event );
+	Object.entries( handlers ).forEach( ( [ name, handler ] ) => {
+		target.addEventListener( name, ( event: Event ) => {
+			handler( context, event );
+		} );
 	} );
 }
 
@@ -299,9 +261,7 @@ function attachGlobalListeners( context: EventContext ): void {
 		() => {
 			onViewportChange( context );
 		},
-		{
-			passive: true,
-		}
+		{ passive: true }
 	);
 	window.addEventListener( 'resize', () => {
 		onViewportChange( context );
@@ -310,14 +270,25 @@ function attachGlobalListeners( context: EventContext ): void {
 
 /**
  * Attaches every delegated listener of the region to the root and the
- * dialog, and the two listeners of the document and the window.
+ * dialog, and the listeners of the document and the window. A second call
+ * on the same context attaches nothing, because `refs.bound` guards it.
  * @param element - The root that holds the links.
  * @param context - The event context.
  */
 export function bind( element: Element, context: EventContext ): void {
 	const { refs } = context;
 
-	attachElementListeners( element, context );
-	attachDialogListeners( refs, context );
+	if ( refs.bound ) {
+		return;
+	}
+
+	refs.bound = true;
+
+	attach( element, rootHandlers, context );
+
+	if ( refs.dialog !== null ) {
+		attach( refs.dialog, dialogHandlers, context );
+	}
+
 	attachGlobalListeners( context );
 }
