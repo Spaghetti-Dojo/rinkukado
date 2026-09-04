@@ -112,4 +112,19 @@ describe( 'the delegated listeners', () => {
 
 		expect( types( harness.sent ) ).toEqual( [ 'enter' ] );
 	} );
+
+	it( 'sends escape on Escape while the focus sits on body', () => {
+		const harness = createHarness();
+		harness.context.isOpen = (): boolean => true;
+		const root = document.getElementById( 'root' )!;
+
+		bind( root, harness.context );
+		document.body.focus();
+
+		document.dispatchEvent(
+			new KeyboardEvent( 'keydown', { key: 'Escape', bubbles: true } )
+		);
+
+		expect( types( harness.sent ) ).toEqual( [ 'escape' ] );
+	} );
 } );

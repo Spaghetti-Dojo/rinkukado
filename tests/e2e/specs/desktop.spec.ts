@@ -63,14 +63,6 @@ test.describe( 'the popover on a desktop', () => {
 	} );
 
 	test( 'closes on escape', async ( { page } ) => {
-		// The client binds `keydown` on the root of the region only, so a
-		// hover leaves the focus on `body` and the key event never reaches
-		// the root. The dialog stays visible. The same key closes the
-		// dialog once the focus sits on the link, which keyboard.spec.ts
-		// proves. A fix belongs in sources/client/preview/events.ts, which
-		// this task must not change.
-		test.fixme();
-
 		const response = page.waitForResponse( previewRequest );
 		await page.hover( '#link-plain' );
 		await response;

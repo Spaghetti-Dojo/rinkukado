@@ -232,7 +232,6 @@ const rootHandlers: Record< string, Handler > = {
 	focusin: onFocusIn,
 	focusout: onFocusOut,
 	click: onClick,
-	keydown: onKeyDown,
 };
 
 const dialogHandlers: Record< string, Handler > = {
@@ -255,6 +254,13 @@ function attach(
 function attachGlobalListeners( context: EventContext ): void {
 	document.addEventListener( 'click', ( event ) => {
 		onDocumentClick( context, event );
+	} );
+	// The listener sits on the document, not on the root of the region.
+	// A hover opens the popover without a move of the focus, so the focus
+	// can stay on `body`. A listener on the root would never see the key
+	// event of such a visitor, and Escape would not close the popover.
+	document.addEventListener( 'keydown', ( event ) => {
+		onKeyDown( context, event );
 	} );
 	window.addEventListener(
 		'scroll',
