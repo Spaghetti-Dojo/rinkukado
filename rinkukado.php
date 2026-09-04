@@ -34,6 +34,7 @@ add_action(
     'plugins_loaded',
     static function (): void {
         package()
+            ->addModule(Rest\Module::new())
             ->addModule(Popover\Module::new())
             ->boot();
     }
