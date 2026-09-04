@@ -18,11 +18,12 @@ export type Effects = {
 
 /**
  * The scheduler of the machine, and the read access to its current value.
+ * Every change of the machine runs through `send`: nothing else may assign
+ * it, so a transition never skips its commands or the timer that follows.
  */
 export type Driver = {
 	send: ( event: IntentEvent ) => void;
 	machine: () => Machine;
-	reset: () => void;
 };
 
 type DriverState = {
@@ -119,8 +120,5 @@ export function createDriver( effects: Effects ): Driver {
 			send( state, event );
 		},
 		machine: (): Machine => state.machine,
-		reset: (): void => {
-			state.machine = initial;
-		},
 	};
 }

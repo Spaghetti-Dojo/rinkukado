@@ -15,6 +15,26 @@ const enter = ( machine: Machine, at: number ): Result =>
 const tick = ( machine: Machine, at: number ): Result =>
 	reduce( machine, { type: 'tick', at }, timings );
 
+const tapOpen = ( linkHref: string ): Machine =>
+	reduce( initial, { type: 'tap', href: linkHref }, timings ).machine;
+
+const leave = ( machine: Machine, at: number ): Result =>
+	reduce( machine, { type: 'leave', at }, timings );
+
+const enterOther = ( machine: Machine, linkHref: string, at: number ): Result =>
+	reduce( machine, { type: 'enter', href: linkHref, at }, timings );
+
+const failed = ( machine: Machine, failedHref: string ): Result =>
+	reduce( machine, { type: 'unavailable', href: failedHref }, timings );
+
+// A opens: the pointer enters, the prefetch fires, then the open deadline.
+function openedA(): Machine {
+	let machine = enter( initial, 1000 ).machine;
+	machine = tick( machine, 1080 ).machine;
+
+	return tick( machine, 1300 ).machine;
+}
+
 // eslint-disable-next-line max-lines-per-function
 describe( 'reduce', () => {
 	it( 'prefetches after the prefetch delay', () => {
@@ -98,7 +118,7 @@ describe( 'reduce', () => {
 		).toEqual( [ { type: 'navigate', href } ] );
 	} );
 
-	it( 'opens the preview of another link on a tap', () => {
+	it( 'closes the old link and opens the new one on a tap of another link', () => {
 		const machine = reduce(
 			initial,
 			{ type: 'tap', href },
@@ -109,6 +129,7 @@ describe( 'reduce', () => {
 		expect(
 			reduce( machine, { type: 'tap', href: other }, timings ).commands
 		).toEqual( [
+			{ type: 'close' },
 			{ type: 'prefetch', href: other },
 			{ type: 'open', href: other },
 		] );
@@ -149,6 +170,38 @@ describe( 'reduce', () => {
 		expect( tick( machine, 1300 ).commands ).toEqual( [
 			{ type: 'open', href },
 		] );
+	} );
+
+	it( 'closes the open link when another is hovered, then leaves the new one before it opens', () => {
+		const other = 'https://example.com/other/';
+		// A stays open, its close pending; B is hovered inside the close
+		// delay, which must close A now; B is left before its own open.
+		const left = leave( openedA(), 1400 ).machine;
+		const enteredOther = enterOther( left, other, 1450 );
+		const leftOther = leave( enteredOther.machine, 1500 );
+
+		expect( left.closeAt ).toBe( 1600 );
+		expect( enteredOther.commands ).toEqual( [ { type: 'close' } ] );
+		expect( enteredOther.machine.href ).toBe( other );
+		expect( leftOther.commands ).toEqual( [ { type: 'abort' } ] );
+		expect( leftOther.machine ).toEqual( initial );
+	} );
+} );
+
+describe( 'unavailable', () => {
+	it( 'closes the open link whose fetch failed', () => {
+		const result = failed( tapOpen( href ), href );
+
+		expect( result.commands ).toEqual( [ { type: 'close' } ] );
+		expect( result.machine ).toEqual( initial );
+	} );
+
+	it( 'ignores a failure of a href the machine already left behind', () => {
+		const other = 'https://example.com/other/';
+		const machine = tapOpen( other );
+
+		expect( failed( machine, href ).commands ).toEqual( [] );
+		expect( failed( machine, href ).machine ).toEqual( machine );
 	} );
 } );
 

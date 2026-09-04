@@ -17,7 +17,8 @@ export type IntentEvent =
 	| { type: 'tick'; at: number }
 	| { type: 'tap'; href: string }
 	| { type: 'escape' }
-	| { type: 'outside' };
+	| { type: 'outside' }
+	| { type: 'unavailable'; href: string };
 
 export type Command =
 	| { type: 'prefetch'; href: string }
@@ -50,6 +51,8 @@ export function nextDeadline( machine: Machine ): number | null {
 }
 
 // Starts the intent timers for a link, unless the popover already shows it.
+// A link that was open for another href must close first: the open phase
+// never ends without a close command, no matter which event ends it.
 function start(
 	machine: Machine,
 	event: { href: string; at: number },
@@ -59,6 +62,9 @@ function start(
 		return { machine: { ...machine, closeAt: null }, commands: [] };
 	}
 
+	const commands: Array< Command > =
+		machine.phase === 'open' ? [ { type: 'close' } ] : [];
+
 	return {
 		machine: {
 			phase: 'intent',
@@ -67,7 +73,7 @@ function start(
 			openAt: event.at + timings.open,
 			closeAt: null,
 		},
-		commands: [],
+		commands,
 	};
 }
 
@@ -159,11 +165,18 @@ function tick( machine: Machine, at: number ): Result {
 	return { machine: next, commands };
 }
 
-// Handles a tap: it opens a new link, or it navigates on a second tap.
+// Handles a tap: it opens a new link, or it navigates on a second tap. A
+// link that was open for another href closes first, for the same reason as
+// in `start`.
 function tap( machine: Machine, href: string ): Result {
 	if ( machine.phase === 'open' && machine.href === href ) {
 		return { machine, commands: [ { type: 'navigate', href } ] };
 	}
+
+	const commands: Array< Command > =
+		machine.phase === 'open' ? [ { type: 'close' } ] : [];
+
+	commands.push( { type: 'prefetch', href }, { type: 'open', href } );
 
 	return {
 		machine: {
@@ -173,11 +186,19 @@ function tap( machine: Machine, href: string ): Result {
 			openAt: null,
 			closeAt: null,
 		},
-		commands: [
-			{ type: 'prefetch', href },
-			{ type: 'open', href },
-		],
+		commands,
 	};
+}
+
+// Handles a fetch that ended in no preview: it closes the popover, but only
+// when the failed href is still the one the machine holds. A visitor who
+// already moved on to another link must not have that link reset.
+function unavailable( machine: Machine, href: string ): Result {
+	if ( machine.phase !== 'open' || machine.href !== href ) {
+		return { machine, commands: [] };
+	}
+
+	return { machine: initial, commands: [ { type: 'close' } ] };
 }
 
 // Handles escape and a click outside: both close the open popover at once.
@@ -239,6 +260,14 @@ function handleDismiss( machine: Machine, event: IntentEvent ): Result {
 	return dismiss( machine );
 }
 
+function handleUnavailable( machine: Machine, event: IntentEvent ): Result {
+	if ( event.type !== 'unavailable' ) {
+		return { machine, commands: [] };
+	}
+
+	return unavailable( machine, event.href );
+}
+
 const handlers: Record<
 	IntentEvent[ 'type' ],
 	( machine: Machine, event: IntentEvent, timings: Timings ) => Result
@@ -250,6 +279,7 @@ const handlers: Record<
 	tap: handleTap,
 	escape: handleDismiss,
 	outside: handleDismiss,
+	unavailable: handleUnavailable,
 };
 
 export function reduce(
