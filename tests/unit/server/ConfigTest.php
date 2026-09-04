@@ -71,3 +71,39 @@ it('rejects an excerpt length below one', function (): void {
 
     expect(Config::new()->excerptLength())->toBe(30);
 });
+
+it('applies the filter of the deny class', function (): void {
+    Functions\when('apply_filters')->alias(
+        static fn (string $hook, mixed $value): mixed
+            => $hook === 'rinkukado.popover.deny-class' ? 'skip-preview' : $value
+    );
+
+    expect(Config::new()->denyClass())->toBe('skip-preview');
+});
+
+it('rejects an empty deny class', function (): void {
+    Functions\when('apply_filters')->alias(
+        static fn (string $hook, mixed $value): mixed
+            => $hook === 'rinkukado.popover.deny-class' ? '   ' : $value
+    );
+
+    expect(Config::new()->denyClass())->toBe('no-rinkukado');
+});
+
+it('applies the filter of the excerpt length', function (): void {
+    Functions\when('apply_filters')->alias(
+        static fn (string $hook, mixed $value): mixed
+            => $hook === 'rinkukado.rest.excerpt-length' ? 55 : $value
+    );
+
+    expect(Config::new()->excerptLength())->toBe(55);
+});
+
+it('returns an empty array when all filtered types are invalid', function (): void {
+    Functions\when('apply_filters')->alias(
+        static fn (string $hook, mixed $value): mixed
+            => $hook === 'rinkukado.rest.post-types' ? ['book'] : $value
+    );
+
+    expect(Config::new()->postTypes())->toBe([]);
+});

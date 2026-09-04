@@ -82,7 +82,7 @@ final readonly class Config
             static fn (mixed $type): bool => is_string($type) && in_array($type, $public, true)
         ));
 
-        return $types === [] ? $public : $types;
+        return $types;
     }
 
     public function excerptLength(): int
