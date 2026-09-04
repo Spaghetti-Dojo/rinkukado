@@ -25,7 +25,7 @@ describe( 'isPreviewable', () => {
 		expect( isPreviewable( facts(), options ) ).toBe( true );
 	} );
 
-	it( 'accepts a link that carries rel nofollow, which the facts ignore', () => {
+	it( 'accepts a link that carries a class other than the deny class', () => {
 		expect(
 			isPreviewable( facts( { classes: [ 'wp-block-post' ] } ), options )
 		).toBe( true );
