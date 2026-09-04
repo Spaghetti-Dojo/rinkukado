@@ -43,6 +43,8 @@ it('seeds a nonce for a logged in user', function (): void {
     ob_get_clean();
 
     expect(wp_interactivity_state('rinkukado')['nonce'])->not->toBe('');
+
+    wp_set_current_user(0);
 });
 
 it('registers the script module and the style', function (): void {
