@@ -104,6 +104,9 @@ it('clears the cached payload when the post changes', function (): void {
 });
 
 it('never caches the response of a logged in user', function (): void {
+    function_exists('wp_delete_user')
+        || require_once ABSPATH . 'wp-admin/includes/user.php';
+
     $user = wp_insert_user([
         'user_login' => 'rinkukado-preview-editor',
         'user_pass' => 'rinkukado-preview-editor',
@@ -117,4 +120,17 @@ it('never caches the response of a logged in user', function (): void {
 
     wp_delete_post($postId, true);
     wp_set_current_user(0);
+    wp_delete_user((int) $user);
+});
+
+it('refuses an attachment', function (): void {
+    $postId = wp_insert_attachment([
+        'post_title' => 'An image',
+        'post_status' => 'inherit',
+        'post_mime_type' => 'image/jpeg',
+    ]);
+
+    expect(get(wp_get_attachment_url($postId))->get_status())->toBe(404);
+
+    wp_delete_attachment($postId, true);
 });

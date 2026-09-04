@@ -107,3 +107,29 @@ it('returns an empty array when all filtered types are invalid', function (): vo
 
     expect(Config::new()->postTypes())->toBe([]);
 });
+
+it('excludes attachment from the default post types', function (): void {
+    Functions\when('get_post_types')->justReturn([
+        'post' => 'post',
+        'page' => 'page',
+        'attachment' => 'attachment',
+    ]);
+
+    expect(Config::new()->postTypes())->toBe(['post', 'page']);
+});
+
+it('lets the filter add attachment back', function (): void {
+    Functions\when('get_post_types')->justReturn([
+        'post' => 'post',
+        'page' => 'page',
+        'attachment' => 'attachment',
+    ]);
+    Functions\when('apply_filters')->alias(
+        static fn (string $hook, mixed $value): mixed
+            => $hook === 'rinkukado.rest.post-types'
+                ? ['post', 'page', 'attachment']
+                : $value
+    );
+
+    expect(Config::new()->postTypes())->toBe(['post', 'page', 'attachment']);
+});

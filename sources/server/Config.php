@@ -67,6 +67,9 @@ final readonly class Config
     }
 
     /**
+     * The default excludes attachment, since the preview of an attachment
+     * is out of scope. The filter can add it back.
+     *
      * @return list<string>
      */
     public function postTypes(): array
@@ -74,8 +77,13 @@ final readonly class Config
         $public = get_post_types(['public' => true]);
         $public = array_values(array_map(static fn (mixed $type): string => (string) $type, $public));
 
-        $value = apply_filters('rinkukado.rest.post-types', $public);
-        $value = is_array($value) ? $value : $public;
+        $default = array_values(array_filter(
+            $public,
+            static fn (string $type): bool => $type !== 'attachment'
+        ));
+
+        $value = apply_filters('rinkukado.rest.post-types', $default);
+        $value = is_array($value) ? $value : $default;
 
         $types = array_values(array_filter(
             $value,
