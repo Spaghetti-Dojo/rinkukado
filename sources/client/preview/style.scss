@@ -33,6 +33,7 @@ $break-medium: 782px;
 	border-inline: 0;
 	border-radius: calc(var(--rinkukado-radius) - 2px) calc(var(--rinkukado-radius) - 2px) 0 0;
 	box-shadow: var(--rinkukado-shadow);
+	box-sizing: border-box;
 	color: var(--rinkukado-text);
 	display: grid;
 	gap: units.rem(8) units.rem(16);

@@ -31,7 +31,6 @@ test.describe( 'the sheet on a touch device', () => {
 	test.beforeEach( async ( { page } ) => {
 		await page.goto( '/rinkukado-links/' );
 	} );
-
 	test( 'opens at the bottom on the first tap', async ( { page } ) => {
 		await tapAndWaitForPreview( page, '#link-plain' );
 		const dialog = page.getByRole( 'dialog' );
@@ -50,6 +49,25 @@ test.describe( 'the sheet on a touch device', () => {
 		await page.mouse.wheel( 0, 400 );
 		await pollScrollY( page );
 		await expect( page.getByRole( 'dialog' ) ).toBeVisible();
+	} );
+} );
+
+// The padding of the dialog must not add to its width, or the sheet reaches
+// past the window and clips the thumbnail.
+test.describe( 'the width of the sheet', () => {
+	test( 'stays inside the window', async ( { page } ) => {
+		await page.goto( '/rinkukado-links/' );
+		await tapAndWaitForPreview( page, '#link-thumb' );
+
+		const dialog = page.getByRole( 'dialog' );
+		await expect( dialog ).toBeVisible();
+
+		const box = await dialog.boundingBox();
+		const width = page.viewportSize()?.width ?? 0;
+
+		expect( box ).not.toBeNull();
+		expect( box!.x ).toBeGreaterThanOrEqual( 0 );
+		expect( box!.x + box!.width ).toBeLessThanOrEqual( width );
 	} );
 } );
 
