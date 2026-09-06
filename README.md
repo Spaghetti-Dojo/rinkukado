@@ -9,6 +9,19 @@ the excerpt and the thumbnail of that post. On a touch device the first tap
 opens a sheet at the bottom of the screen, and the second tap of the same link
 opens the article.
 
+The plugin holds three modes, and the device chooses between them.
+
+| The device | What the visitor gets |
+| --- | --- |
+| a coarse pointer, at any width | the sheet, opened by a tap |
+| a fine pointer, in a window of 782px or more | the anchored popover, opened by a hover |
+| a fine pointer, in a narrower window | no popover, and links behave as they do without this plugin |
+
+The third row keeps a promise: a sheet at the bottom of a narrow window loses
+the hover before the pointer reaches it, and a click that opens a sheet
+swallows the navigation. The popover returns when the window grows, with no
+reload.
+
 ## Requirements
 
 - WordPress 7.1 or later

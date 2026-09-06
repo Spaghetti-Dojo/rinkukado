@@ -12,7 +12,12 @@ use SpaghettiDojo\Rinkukado\Config;
 final readonly class PopoverRegion
 {
     public const STORE = 'rinkukado';
-    private const SHEET_QUERY = '(pointer: coarse), (max-width: 781px)';
+    // A coarse pointer always gets the sheet. A fine pointer gets the anchored
+    // popover only when the window holds it. Below that width a fine pointer
+    // gets no popover at all, because a sheet far from the link loses the
+    // hover, and a click that opens a sheet swallows the navigation.
+    private const SHEET_QUERY = '(pointer: coarse)';
+    private const HOVER_QUERY = '(hover: hover) and (pointer: fine) and (min-width: 782px)';
 
     public static function new(Config $config): self
     {
@@ -93,6 +98,7 @@ final readonly class PopoverRegion
             'denyClass' => $this->config->denyClass(),
             'timings' => $this->config->timings(),
             'sheetQuery' => self::SHEET_QUERY,
+            'hoverQuery' => self::HOVER_QUERY,
             'closeLabel' => __('Close the preview', 'rinkukado'),
             'ctaLabel' => __('Read the article', 'rinkukado'),
             'isOpen' => false,

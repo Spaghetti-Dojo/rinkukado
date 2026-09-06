@@ -10,6 +10,7 @@ import type {
 	Machine,
 } from '../../../sources/client/preview/intent';
 import type { Availability } from '../../../sources/client/preview/network';
+import type { Mode } from '../../../sources/client/preview/dom';
 
 type Harness = {
 	context: EventContext;
@@ -39,7 +40,7 @@ function createHarness( overrides: Partial< EventContext > = {} ): Harness {
 		},
 		machine: () => initial,
 		isOpen: () => false,
-		isSheet: () => false,
+		mode: (): Mode => 'hover',
 		policyOptions: () => ( {
 			siteOrigin: 'http://localhost',
 			homePath: '/',
@@ -67,18 +68,10 @@ function types( sent: Array< IntentEvent > ): Array< string > {
 	return sent.map( ( event ) => event.type );
 }
 
-// A pointer that both hovers and is fine, so `isCoarse` reports the hover
-// behavior.
-function useFinePointer(): void {
-	window.matchMedia = jest.fn( ( query: string ) => ( {
-		matches: query === '(hover: hover) and (pointer: fine)',
-	} ) ) as unknown as typeof window.matchMedia;
-}
-
-// No pointer both hovers and is fine, so `isCoarse` reports the tap
-// behavior.
-function useCoarsePointer(): void {
-	window.matchMedia = jest.fn().mockReturnValue( { matches: false } );
+// The mode arrives through the context, so a test names the mode it needs
+// rather than a media query.
+function inMode( value: Mode ): Partial< EventContext > {
+	return { mode: (): Mode => value };
 }
 
 function openMachine( linkHref: string ): Machine {
@@ -103,8 +96,6 @@ function clickLink( link: Element ): MouseEvent {
 }
 
 beforeEach( () => {
-	useFinePointer();
-
 	document.body.innerHTML =
 		'<main id="root">' +
 		'<a id="link" href="/post/one/">read <strong id="child">this</strong></a>' +
@@ -176,9 +167,8 @@ describe( 'the delegated listeners', () => {
 
 describe( 'onClick of a href already known unavailable', () => {
 	it( 'lets the tap navigate, without sending it to the machine', () => {
-		useCoarsePointer();
-
 		const harness = bindHarness( {
+			...inMode( 'sheet' ),
 			availability: (): Availability => 'unavailable',
 		} );
 		const event = clickLink( document.getElementById( 'link' )! );
@@ -189,13 +179,9 @@ describe( 'onClick of a href already known unavailable', () => {
 	} );
 } );
 
-describe( 'onClick on a coarse device', () => {
-	beforeEach( () => {
-		useCoarsePointer();
-	} );
-
+describe( 'onClick in the sheet mode', () => {
 	it( 'prevents the default and sends tap of a href not yet known', () => {
-		const harness = bindHarness();
+		const harness = bindHarness( inMode( 'sheet' ) );
 		const link = document.getElementById( 'link' )! as HTMLAnchorElement;
 		const event = clickLink( link );
 
@@ -207,10 +193,63 @@ describe( 'onClick on a coarse device', () => {
 	it( 'prevents the default on the second tap, so only one path navigates', () => {
 		const link = document.getElementById( 'link' )! as HTMLAnchorElement;
 		const machine = (): Machine => openMachine( link.href );
-		const harness = bindHarness( { machine } );
+		const harness = bindHarness( { ...inMode( 'sheet' ), machine } );
 		const event = clickLink( link );
 
 		expect( event.defaultPrevented ).toBe( true );
 		expect( types( harness.sent ) ).toEqual( [ 'tap' ] );
+	} );
+} );
+
+function pointerOverLink(): void {
+	document
+		.getElementById( 'link' )!
+		.dispatchEvent( new MouseEvent( 'pointerover', { bubbles: true } ) );
+}
+
+// A fine pointer in a narrow window gets no popover at all. The links of the
+// page must keep the behavior they hold without this plugin.
+describe( 'the off mode and the pointer', () => {
+	it( 'sends nothing when the pointer enters a link', () => {
+		const harness = bindHarness( inMode( 'off' ) );
+
+		pointerOverLink();
+
+		expect( harness.sent ).toEqual( [] );
+	} );
+} );
+
+describe( 'the off mode and a click', () => {
+	it( 'lets a click navigate, and sends nothing', () => {
+		const harness = bindHarness( inMode( 'off' ) );
+		const event = clickLink( document.getElementById( 'link' )! );
+
+		expect( event.defaultPrevented ).toBe( false );
+		expect( harness.sent ).toEqual( [] );
+		expect( harness.refs.pendingTap ).toBeNull();
+	} );
+} );
+
+describe( 'the off mode and the keyboard', () => {
+	it( 'sends nothing when a link takes the focus', () => {
+		const harness = bindHarness( inMode( 'off' ) );
+
+		document
+			.getElementById( 'link' )!
+			.dispatchEvent( new FocusEvent( 'focusin', { bubbles: true } ) );
+
+		expect( harness.sent ).toEqual( [] );
+	} );
+} );
+
+// The sheet mode never answers a hover, so a pointer that crosses a link
+// leaves the page as it is.
+describe( 'the sheet mode', () => {
+	it( 'sends nothing when the pointer enters a link', () => {
+		const harness = bindHarness( inMode( 'sheet' ) );
+
+		pointerOverLink();
+
+		expect( harness.sent ).toEqual( [] );
 	} );
 } );

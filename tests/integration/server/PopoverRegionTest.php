@@ -25,7 +25,9 @@ it('seeds no nonce for an anonymous visitor', function (): void {
     $state = wp_interactivity_state('rinkukado');
 
     expect($state['nonce'])->toBe('')
-        ->and($state['sheetQuery'])->toBe('(pointer: coarse), (max-width: 781px)')
+        ->and($state['sheetQuery'])->toBe('(pointer: coarse)')
+        ->and($state['hoverQuery'])
+            ->toBe('(hover: hover) and (pointer: fine) and (min-width: 782px)')
         ->and($state['rootSelector'])->toBe('main')
         ->and($state['isOpen'])->toBeFalse();
 });

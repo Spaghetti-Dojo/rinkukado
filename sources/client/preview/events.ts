@@ -1,4 +1,4 @@
-import { isCoarse, placeDialog, staysInDialog } from './dom';
+import { placeDialog, staysInDialog, staysInLink } from './dom';
 import { linkOf } from './context';
 
 import type { EventContext } from './context';
@@ -27,7 +27,7 @@ export function returnFocusOnShiftTab(
 }
 
 function onPointerOver( context: EventContext, event: Event ): void {
-	if ( isCoarse() ) {
+	if ( context.mode() !== 'hover' ) {
 		return;
 	}
 
@@ -39,13 +39,6 @@ function onPointerOver( context: EventContext, event: Event ): void {
 
 	context.refs.activeLink = link;
 	context.send( { type: 'enter', href: link.href, at: Date.now() } );
-}
-
-function staysInLink(
-	link: HTMLAnchorElement,
-	related: EventTarget | null
-): boolean {
-	return related instanceof Node && link.contains( related );
 }
 
 function leaveUnlessInDialog(
@@ -73,7 +66,7 @@ function leaveUnlessInDialog(
 }
 
 function onPointerOut( context: EventContext, event: Event ): void {
-	if ( isCoarse() ) {
+	if ( context.mode() !== 'hover' ) {
 		return;
 	}
 
@@ -103,6 +96,10 @@ function cancelClose( context: EventContext ): void {
 }
 
 function onFocusIn( context: EventContext, event: Event ): void {
+	if ( context.mode() === 'off' ) {
+		return;
+	}
+
 	const link = linkOf( context, event.target );
 
 	if ( link === null ) {
@@ -125,7 +122,7 @@ function onFocusOut( context: EventContext, event: Event ): void {
 // the machine, not the browser, drives the navigation: `tap` answers with
 // an `open` command or a `navigate` command, never both.
 function onClick( context: EventContext, event: Event ): void {
-	if ( ! isCoarse() ) {
+	if ( context.mode() !== 'sheet' ) {
 		return;
 	}
 
@@ -196,7 +193,7 @@ function handleViewportFrame( context: EventContext ): void {
 
 	refs.frame = null;
 
-	if ( refs.activeLink === null || context.isSheet() ) {
+	if ( refs.activeLink === null || context.mode() !== 'hover' ) {
 		return;
 	}
 

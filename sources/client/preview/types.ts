@@ -27,6 +27,7 @@ export type ServerState = {
 	denyClass: string;
 	timings: Timings;
 	sheetQuery: string;
+	hoverQuery: string;
 	closeLabel: string;
 	ctaLabel: string;
 };

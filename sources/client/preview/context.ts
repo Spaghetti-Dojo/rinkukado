@@ -1,5 +1,6 @@
 import { previewableLink } from './dom';
 
+import type { Mode } from './dom';
 import type { PolicyOptions } from './policy';
 import type { IntentEvent, Machine } from './intent';
 import type { Availability } from './network';
@@ -28,7 +29,7 @@ export type EventContext = {
 	send: ( event: IntentEvent ) => void;
 	machine: () => Machine;
 	isOpen: () => boolean;
-	isSheet: () => boolean;
+	mode: () => Mode;
 	policyOptions: () => PolicyOptions;
 	availability: ( href: string ) => Availability;
 };

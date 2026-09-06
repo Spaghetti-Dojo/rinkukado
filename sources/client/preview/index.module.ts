@@ -2,12 +2,13 @@ import { getElement, store } from '@wordpress/interactivity';
 
 import { bind, returnFocusOnShiftTab } from './events';
 import { createDriver } from './driver';
-import { placeDialog, resolveRoot, unplaceDialog } from './dom';
+import { modeOf, placeDialog, resolveRoot, unplaceDialog } from './dom';
 import { createFetcher, readPreview } from './network';
 
 import type { EventContext, Refs } from './context';
 import type { PolicyOptions } from './policy';
 import type { Endpoint } from './network';
+import type { Mode } from './dom';
 import type { Machine } from './intent';
 import type { Preview, ServerState, Timings } from './types';
 
@@ -38,25 +39,36 @@ const refs: Refs = {
 	pendingTap: null,
 };
 
-// Keeps `state.isSheet` correct on every rotation and resize, not only at
-// the moment the popover opens. A change listener guards against a second
-// registration when `init` runs more than once.
-let sheetQueryBound = false;
+// Keeps the mode correct on every rotation and resize, not only at the moment
+// the popover opens. A guard stops a second registration when `init` runs
+// more than once.
+let queriesBound = false;
+let mode: Mode = 'off';
 
-function watchSheetQuery(): void {
-	if ( sheetQueryBound ) {
+function watchQueries(): void {
+	if ( queriesBound ) {
 		return;
 	}
 
-	sheetQueryBound = true;
+	queriesBound = true;
 
-	const query = window.matchMedia( state.sheetQuery );
+	const sheet = window.matchMedia( state.sheetQuery );
+	const hover = window.matchMedia( state.hoverQuery );
 
-	state.isSheet = query.matches;
+	const apply = (): void => {
+		mode = modeOf( sheet.matches, hover.matches );
+		state.isSheet = mode === 'sheet';
 
-	query.addEventListener( 'change', ( event ): void => {
-		state.isSheet = event.matches;
-	} );
+		// A resize into the off mode leaves no popover behind.
+		if ( mode === 'off' && state.isOpen ) {
+			driver.send( { type: 'escape' } );
+		}
+	};
+
+	apply();
+
+	sheet.addEventListener( 'change', apply );
+	hover.addEventListener( 'change', apply );
 }
 
 const { state }: { state: State } = store( 'rinkukado', {
@@ -100,7 +112,7 @@ const { state }: { state: State } = store( 'rinkukado', {
 				return;
 			}
 
-			watchSheetQuery();
+			watchQueries();
 			bind( root, context );
 		},
 	},
@@ -233,7 +245,7 @@ const context: EventContext = {
 	},
 	machine: (): Machine => driver.machine(),
 	isOpen: (): boolean => state.isOpen,
-	isSheet: (): boolean => state.isSheet,
+	mode: (): Mode => mode,
 	policyOptions,
 	availability: ( href: string ) => fetcher.availability( href ),
 };

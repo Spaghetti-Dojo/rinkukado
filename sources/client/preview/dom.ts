@@ -23,12 +23,42 @@ export function resolveRoot(
 }
 
 /**
- * Tells whether the gesture of the visitor is coarse, such as a touch or a
- * stylus. Only a fine pointer that can also hover gets the hover behavior;
- * every other pointer gets the tap behavior.
+ * The three modes of the feature.
+ *
+ * `sheet` opens a sheet on a tap, and every coarse pointer gets it. `hover`
+ * opens the anchored popover on a hover, and a fine pointer gets it when the
+ * window is wide enough. `off` shows nothing: a fine pointer in a narrow
+ * window keeps ordinary links, because a sheet far from the link loses the
+ * hover on the way, and a click that opens a sheet swallows the navigation.
  */
-export function isCoarse(): boolean {
-	return ! window.matchMedia( '(hover: hover) and (pointer: fine)' ).matches;
+export type Mode = 'sheet' | 'hover' | 'off';
+
+/**
+ * Reads the mode from the two queries. The sheet wins, so a device that
+ * somehow matches both keeps one behavior.
+ * @param sheetMatches - Whether the query of the sheet matches.
+ * @param hoverMatches - Whether the query of the hover matches.
+ */
+export function modeOf( sheetMatches: boolean, hoverMatches: boolean ): Mode {
+	if ( sheetMatches ) {
+		return 'sheet';
+	}
+
+	return hoverMatches ? 'hover' : 'off';
+}
+
+/**
+ * Tells whether the pointer stayed inside the link that it left. A link that
+ * holds an inline child fires `pointerout` when the pointer crosses into that
+ * child, and the visitor never left the link.
+ * @param link    - The link of the event.
+ * @param related - The related target of the pointer event.
+ */
+export function staysInLink(
+	link: HTMLAnchorElement,
+	related: EventTarget | null
+): boolean {
+	return related instanceof Node && link.contains( related );
 }
 
 /**
