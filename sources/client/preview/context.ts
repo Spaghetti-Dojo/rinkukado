@@ -8,7 +8,10 @@ import type { Availability } from './network';
 /**
  * The mutable references that the delegated listeners read and write.
  * `bound` tells whether `bind` already attached the listeners of this
- * region, so that a second init attaches nothing twice. `pendingTap` holds
+ * region, so that a second init attaches nothing twice. `activeLink` holds
+ * the link under the pointer, and `openLink` holds the link that the dialog
+ * belongs to. The two differ while the pointer moves from one link to the
+ * next, and the close of the first must not touch the second. `pendingTap` holds
  * the href of a tap whose navigation was prevented and whose preview has
  * not settled yet, so a later failure can still navigate.
  */
@@ -18,6 +21,7 @@ export type Refs = {
 	dialog: HTMLElement | null;
 	closeButton: HTMLButtonElement | null;
 	activeLink: HTMLAnchorElement | null;
+	openLink: HTMLAnchorElement | null;
 	pendingTap: string | null;
 };
 

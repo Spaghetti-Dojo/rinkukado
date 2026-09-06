@@ -25,6 +25,7 @@ function createRefs(): Refs {
 		dialog: null,
 		closeButton: null,
 		activeLink: null,
+		openLink: null,
 		pendingTap: null,
 	};
 }

@@ -36,6 +36,7 @@ const refs: Refs = {
 	dialog: null,
 	closeButton: null,
 	activeLink: null,
+	openLink: null,
 	pendingTap: null,
 };
 
@@ -146,12 +147,13 @@ function applyPreview( preview: Preview ): void {
 
 function revealDialog(): void {
 	state.isOpen = true;
+	refs.openLink = refs.activeLink;
 
-	if ( refs.activeLink !== null ) {
-		refs.activeLink.setAttribute( 'aria-describedby', 'rinkukado-title' );
+	if ( refs.openLink !== null ) {
+		refs.openLink.setAttribute( 'aria-describedby', 'rinkukado-title' );
 
 		if ( refs.dialog !== null ) {
-			placeDialog( refs.activeLink, refs.dialog );
+			placeDialog( refs.openLink, refs.dialog );
 		}
 	}
 
@@ -205,18 +207,21 @@ function close( href: string | null ): void {
 
 	state.isOpen = false;
 
-	if ( refs.activeLink !== null ) {
-		unplaceDialog( refs.activeLink );
+	// The close belongs to the link that the dialog holds, never to the link
+	// under the pointer. The two differ when the pointer moves from one link
+	// to the next while the popover is open.
+	if ( refs.openLink !== null ) {
+		unplaceDialog( refs.openLink );
 
 		if (
 			refs.dialog !== null &&
 			refs.dialog.contains( refs.dialog.ownerDocument.activeElement )
 		) {
-			refs.activeLink.focus();
+			refs.openLink.focus();
 		}
 	}
 
-	refs.activeLink = null;
+	refs.openLink = null;
 }
 
 const driver = createDriver( {

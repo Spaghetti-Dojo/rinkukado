@@ -19,10 +19,10 @@ export function returnFocusOnShiftTab(
 		event.key === 'Tab' &&
 		event.shiftKey &&
 		event.target === refs.closeButton &&
-		refs.activeLink !== null
+		refs.openLink !== null
 	) {
 		event.preventDefault();
-		refs.activeLink.focus();
+		refs.openLink.focus();
 	}
 }
 
@@ -151,7 +151,7 @@ function tabEntersDialog(
 		keyboard.key === 'Tab' &&
 		! keyboard.shiftKey &&
 		context.isOpen() &&
-		keyboard.target === refs.activeLink &&
+		keyboard.target === refs.openLink &&
 		refs.closeButton !== null
 	);
 }
@@ -193,18 +193,18 @@ function handleViewportFrame( context: EventContext ): void {
 
 	refs.frame = null;
 
-	if ( refs.activeLink === null || context.mode() !== 'hover' ) {
+	if ( refs.openLink === null || context.mode() !== 'hover' ) {
 		return;
 	}
 
-	if ( linkLeftViewport( refs.activeLink.getBoundingClientRect() ) ) {
+	if ( linkLeftViewport( refs.openLink.getBoundingClientRect() ) ) {
 		context.send( { type: 'escape' } );
 
 		return;
 	}
 
 	if ( refs.dialog !== null ) {
-		placeDialog( refs.activeLink, refs.dialog );
+		placeDialog( refs.openLink, refs.dialog );
 	}
 }
 
