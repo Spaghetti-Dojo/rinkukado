@@ -27,6 +27,7 @@ function createRefs(): Refs {
 		activeLink: null,
 		openLink: null,
 		pendingTap: null,
+		returningFocus: false,
 	};
 }
 
@@ -252,5 +253,26 @@ describe( 'the sheet mode', () => {
 		pointerOverLink();
 
 		expect( harness.sent ).toEqual( [] );
+	} );
+} );
+
+describe( 'the focus that the close returns to the link', () => {
+	it( 'sends nothing, so the popover stays closed', () => {
+		const harness = bindHarness( inMode( 'sheet' ) );
+		const link = document.getElementById( 'link' )!;
+
+		harness.refs.returningFocus = true;
+		link.dispatchEvent( new FocusEvent( 'focusin', { bubbles: true } ) );
+
+		expect( harness.sent ).toEqual( [] );
+	} );
+
+	it( 'sends focus again once the return of the focus ended', () => {
+		const harness = bindHarness( inMode( 'sheet' ) );
+		const link = document.getElementById( 'link' )!;
+
+		link.dispatchEvent( new FocusEvent( 'focusin', { bubbles: true } ) );
+
+		expect( types( harness.sent ) ).toEqual( [ 'focus' ] );
 	} );
 } );

@@ -96,7 +96,9 @@ function cancelClose( context: EventContext ): void {
 }
 
 function onFocusIn( context: EventContext, event: Event ): void {
-	if ( context.mode() === 'off' ) {
+	// The close returns the focus to the link. That focus ends the popover;
+	// it is not a new intent, so it must open nothing.
+	if ( context.refs.returningFocus || context.mode() === 'off' ) {
 		return;
 	}
 

@@ -23,6 +23,7 @@ export type Refs = {
 	activeLink: HTMLAnchorElement | null;
 	openLink: HTMLAnchorElement | null;
 	pendingTap: string | null;
+	returningFocus: boolean;
 };
 
 /**

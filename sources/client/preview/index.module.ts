@@ -38,6 +38,7 @@ const refs: Refs = {
 	activeLink: null,
 	openLink: null,
 	pendingTap: null,
+	returningFocus: false,
 };
 
 // Keeps the mode correct on every rotation and resize, not only at the moment
@@ -202,6 +203,18 @@ async function open( href: string ): Promise< void > {
 	revealDialog();
 }
 
+// The focus event of this call is synchronous, so the flag covers the
+// listener that reads it and nothing else.
+function returnFocus( link: HTMLAnchorElement ): void {
+	refs.returningFocus = true;
+
+	try {
+		link.focus();
+	} finally {
+		refs.returningFocus = false;
+	}
+}
+
 function close( href: string | null ): void {
 	fetcher.abort( href );
 
@@ -217,7 +230,7 @@ function close( href: string | null ): void {
 			refs.dialog !== null &&
 			refs.dialog.contains( refs.dialog.ownerDocument.activeElement )
 		) {
-			refs.openLink.focus();
+			returnFocus( refs.openLink );
 		}
 	}
 

@@ -6,7 +6,7 @@ namespace SpaghettiDojo\Rinkukado\Tests\Unit\Rest;
 
 use SpaghettiDojo\Rinkukado\Rest;
 
-final class TagMiddleware implements Rest\Middleware
+final class MiddlewareProcessTest implements Rest\Middleware
 {
     /** @param list<string> $log */
     public function __construct(private string $tag, private array &$log)
@@ -28,7 +28,7 @@ it('nests the middlewares in the order of attachment', function (): void {
     $request = \Mockery::mock(\WP_REST_Request::class);
 
     Rest\MiddlewareProcess::run(
-        [new TagMiddleware('outer', $log), new TagMiddleware('inner', $log)],
+        [new MiddlewareProcessTest('outer', $log), new MiddlewareProcessTest('inner', $log)],
         static fn (\WP_REST_Request $request): \WP_REST_Response
             => new \WP_REST_Response([], 200),
         $request

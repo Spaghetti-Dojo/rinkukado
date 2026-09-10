@@ -107,3 +107,17 @@ test.describe( 'a tap of a link whose preview fails', () => {
 		await page.waitForURL( /\/category\// );
 	} );
 } );
+
+// The close returns the focus to the link. That focus must not start a new
+// intent, or the sheet opens again on its own.
+test.describe( 'the sheet after the close', () => {
+	test( 'stays closed', async ( { page } ) => {
+		await page.goto( '/rinkukado-links/' );
+		await tapAndWaitForPreview( page, '#link-plain' );
+		await expect( page.getByRole( 'dialog' ) ).toBeVisible();
+		await page.getByRole( 'dialog' ).getByRole( 'button' ).tap();
+		await expect( page.getByRole( 'dialog' ) ).toBeHidden();
+		await page.waitForTimeout( 600 );
+		await expect( page.getByRole( 'dialog' ) ).toBeHidden();
+	} );
+} );
