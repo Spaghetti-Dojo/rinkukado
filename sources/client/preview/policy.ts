@@ -14,6 +14,7 @@ export type PolicyOptions = {
 	homePath: string;
 	currentPath: string;
 	denyClass: string;
+	containerSelector: string;
 };
 
 const FILE_EXTENSION = /\.[a-z0-9]{2,5}$/i;

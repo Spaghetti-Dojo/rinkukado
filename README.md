@@ -54,6 +54,7 @@ The site runs on `http://localhost:8877`.
 | Filter | Default | Purpose |
 | --- | --- | --- |
 | `rinkukado.popover.root-selector` | `main` | The element that holds the links. |
+| `rinkukado.popover.container-selector` | `p` | The element that must hold the link. |
 | `rinkukado.popover.deny-class` | `no-rinkukado` | A link with this class shows no preview. |
 | `rinkukado.popover.timings` | `['prefetch' => 80, 'open' => 300, 'close' => 200]` | The delays in milliseconds. |
 | `rinkukado.rest.post-types` | every public type except `attachment` | The types that the endpoint accepts. |
@@ -63,6 +64,11 @@ The site runs on `http://localhost:8877`.
 ```php
 add_filter('rinkukado.popover.root-selector', static fn (): string => '.site-content');
 ```
+
+The popover prints only on a singular view, and only for a link inside the
+element that `rinkukado.popover.container-selector` names. The default keeps
+the popover on the links of the prose, and leaves the date, the author and the
+navigation alone.
 
 The default list of post types excludes `attachment`, so a media page shows
 no preview. Add `attachment` back through `rinkukado.rest.post-types` when a

@@ -25,12 +25,41 @@ add_action('init', static function (): void {
     $wp_rewrite->flush_rules(true);
 }, 5);
 
+
+/**
+ * The version of the content below. Raise it after every change of the
+ * fixtures, so an existing site takes the new content on the next request.
+ */
+const RINKUKADO_FIXTURES_VERSION = '2';
+
+/**
+ * Inserts the post, or updates it when a post of the same slug and the same
+ * type already exists. A site that already holds the fixtures then takes the
+ * new content instead of keeping the old one.
+ *
+ * @param array<string, mixed> $data
+ */
+function rinkukado_fixture_post(array $data): int
+{
+    $existing = get_page_by_path(
+        (string) $data['post_name'],
+        OBJECT,
+        (string) $data['post_type']
+    );
+
+    if ($existing instanceof WP_Post) {
+        $data['ID'] = $existing->ID;
+    }
+
+    return (int) wp_insert_post($data);
+}
+
 add_action('init', static function (): void {
-    if (get_page_by_path('rinkukado-links', OBJECT, 'page') !== null) {
+    if (get_option('rinkukado_fixtures_version') === RINKUKADO_FIXTURES_VERSION) {
         return;
     }
 
-    $withThumbnail = wp_insert_post([
+    $withThumbnail = rinkukado_fixture_post([
         'post_type' => 'post',
         'post_status' => 'publish',
         'post_name' => 'rinkukado-with-thumbnail',
@@ -38,7 +67,7 @@ add_action('init', static function (): void {
         'post_excerpt' => 'The excerpt of the post that holds a thumbnail.',
     ]);
 
-    $withoutThumbnail = wp_insert_post([
+    $withoutThumbnail = rinkukado_fixture_post([
         'post_type' => 'post',
         'post_status' => 'publish',
         'post_name' => 'rinkukado-without-thumbnail',
@@ -46,7 +75,7 @@ add_action('init', static function (): void {
         'post_excerpt' => 'The excerpt of the post that holds no thumbnail.',
     ]);
 
-    $draft = wp_insert_post([
+    $draft = rinkukado_fixture_post([
         'post_type' => 'post',
         'post_status' => 'draft',
         'post_name' => 'rinkukado-draft',
@@ -60,8 +89,11 @@ add_action('init', static function (): void {
 
     copy(__DIR__ . '/thumbnail.png', $file);
 
-    $attachment = wp_insert_attachment([
+    $existing = get_page_by_path('rinkukado-thumbnail', OBJECT, 'attachment');
+    $attachment = (int) wp_insert_attachment([
+        'ID' => $existing instanceof WP_Post ? $existing->ID : 0,
         'post_mime_type' => 'image/png',
+        'post_name' => 'rinkukado-thumbnail',
         'post_title' => 'The thumbnail',
         'post_status' => 'inherit',
     ], $file);
@@ -75,7 +107,8 @@ add_action('init', static function (): void {
 
     set_post_thumbnail($withThumbnail, $attachment);
 
-    $category = wp_insert_term('Rinkukado news', 'category');
+    $category = term_exists('Rinkukado news', 'category')
+        ?: wp_insert_term('Rinkukado news', 'category');
     $categoryLink = is_array($category)
         ? get_category_link((int) $category['term_id'])
         : '';
@@ -89,6 +122,11 @@ add_action('init', static function (): void {
         . '<a id="link-external" href="https://example.org/">External</a> '
         . '<a id="link-denied" class="no-rinkukado" href="%2$s">Denied</a>'
         . '</p>'
+        // A link of the metadata, outside of a paragraph. The popover must
+        // leave it alone.
+        . '<div class="wp-block-post-date">'
+        . '<a id="link-outside" href="%2$s">Outside of a paragraph</a>'
+        . '</div>'
         // `wp_kses` drops `block-size`, so the spacer needs `height` to survive.
         . '<div style="height: 200vh"></div>'
         . '<p><a id="link-bottom" href="%2$s">Near the bottom</a></p>',
@@ -98,11 +136,13 @@ add_action('init', static function (): void {
         $categoryLink
     );
 
-    wp_insert_post([
+    rinkukado_fixture_post([
         'post_type' => 'page',
         'post_status' => 'publish',
         'post_name' => 'rinkukado-links',
         'post_title' => 'Rinkukado links',
         'post_content' => $content,
     ]);
+
+    update_option('rinkukado_fixtures_version', RINKUKADO_FIXTURES_VERSION);
 });

@@ -12,6 +12,7 @@ namespace SpaghettiDojo\Rinkukado;
 final readonly class Config
 {
     public const DEFAULT_ROOT_SELECTOR = 'main';
+    public const DEFAULT_CONTAINER_SELECTOR = 'p';
     public const DEFAULT_DENY_CLASS = 'no-rinkukado';
     public const DEFAULT_EXCERPT_LENGTH = 30;
 
@@ -36,6 +37,23 @@ final readonly class Config
         $selector = is_string($value) ? trim($value) : '';
 
         return $selector === '' ? self::DEFAULT_ROOT_SELECTOR : $selector;
+    }
+
+    /**
+     * The element that must hold the link. The default keeps the popover on
+     * the links of the prose, and leaves out the links of the metadata, of
+     * the navigation and of the other parts of the template.
+     */
+    public function containerSelector(): string
+    {
+        $value = apply_filters(
+            'rinkukado.popover.container-selector',
+            self::DEFAULT_CONTAINER_SELECTOR
+        );
+
+        $selector = is_string($value) ? trim($value) : '';
+
+        return $selector === '' ? self::DEFAULT_CONTAINER_SELECTOR : $selector;
     }
 
     public function denyClass(): string

@@ -48,6 +48,7 @@ function createHarness( overrides: Partial< EventContext > = {} ): Harness {
 			homePath: '/',
 			currentPath: '/current/',
 			denyClass: 'rinkukado-no-preview',
+			containerSelector: 'p',
 		} ),
 		availability: (): Availability => 'unknown',
 		...overrides,
@@ -100,7 +101,7 @@ function clickLink( link: Element ): MouseEvent {
 beforeEach( () => {
 	document.body.innerHTML =
 		'<main id="root">' +
-		'<a id="link" href="/post/one/">read <strong id="child">this</strong></a>' +
+		'<p><a id="link" href="/post/one/">read <strong id="child">this</strong></a></p>' +
 		'<span id="outside">outside</span>' +
 		'</main>';
 } );

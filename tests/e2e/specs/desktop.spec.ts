@@ -104,6 +104,7 @@ test.describe( 'the popover restrictions', () => {
 			'#link-category',
 			'#link-draft',
 			'#link-denied',
+			'#link-outside',
 		] ) {
 			await page.hover( selector );
 			await page.waitForTimeout( 600 );

@@ -18,6 +18,7 @@ it('returns the defaults', function (): void {
     $config = Config::new();
 
     expect($config->rootSelector())->toBe('main')
+        ->and($config->containerSelector())->toBe('p')
         ->and($config->denyClass())->toBe('no-rinkukado')
         ->and($config->excerptLength())->toBe(30)
         ->and($config->timings())->toBe(['prefetch' => 80, 'open' => 300, 'close' => 200])
@@ -40,6 +41,24 @@ it('rejects an empty root selector', function (): void {
     );
 
     expect(Config::new()->rootSelector())->toBe('main');
+});
+
+it('applies the filter of the container selector', function (): void {
+    Functions\when('apply_filters')->alias(
+        static fn (string $hook, mixed $value): mixed
+            => $hook === 'rinkukado.popover.container-selector' ? '.entry-content p' : $value
+    );
+
+    expect(Config::new()->containerSelector())->toBe('.entry-content p');
+});
+
+it('rejects an empty container selector', function (): void {
+    Functions\when('apply_filters')->alias(
+        static fn (string $hook, mixed $value): mixed
+            => $hook === 'rinkukado.popover.container-selector' ? '   ' : $value
+    );
+
+    expect(Config::new()->containerSelector())->toBe('p');
 });
 
 it('rejects a timing that is not a positive integer', function (): void {

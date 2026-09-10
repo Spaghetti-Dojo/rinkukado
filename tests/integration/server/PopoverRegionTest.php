@@ -4,6 +4,27 @@ declare(strict_types=1);
 
 namespace SpaghettiDojo\Rinkukado\Tests\Integration;
 
+/**
+ * Puts the main query on a single post, because the region prints only
+ * on a singular view.
+ */
+function goToSingular(): int
+{
+    $postId = (int) wp_insert_post([
+        'post_title' => 'The single post',
+        'post_status' => 'publish',
+    ]);
+
+    $GLOBALS['wp_query'] = new \WP_Query(['p' => $postId]);
+    $GLOBALS['wp_the_query'] = $GLOBALS['wp_query'];
+
+    return $postId;
+}
+
+beforeEach(function (): void {
+    goToSingular();
+});
+
 it('prints the dialog once in the footer', function (): void {
     ob_start();
     do_action('wp_footer');
@@ -29,6 +50,7 @@ it('seeds no nonce for an anonymous visitor', function (): void {
         ->and($state['hoverQuery'])
             ->toBe('(hover: hover) and (pointer: fine) and (min-width: 782px)')
         ->and($state['rootSelector'])->toBe('main')
+        ->and($state['containerSelector'])->toBe('p')
         ->and($state['isOpen'])->toBeFalse();
 });
 
@@ -47,6 +69,17 @@ it('seeds a nonce for a logged in user', function (): void {
     expect(wp_interactivity_state('rinkukado')['nonce'])->not->toBe('');
 
     wp_set_current_user(0);
+});
+
+it('prints nothing outside of a singular view', function (): void {
+    $GLOBALS['wp_query'] = new \WP_Query(['post_type' => 'post']);
+    $GLOBALS['wp_the_query'] = $GLOBALS['wp_query'];
+
+    ob_start();
+    do_action('wp_footer');
+    $output = (string) ob_get_clean();
+
+    expect($output)->not->toContain('class="rinkukado"');
 });
 
 it('registers the script module and the style', function (): void {

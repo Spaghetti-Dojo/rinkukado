@@ -9,6 +9,7 @@ const options: PolicyOptions = {
 	homePath: '/',
 	currentPath: '/blog/current-post/',
 	denyClass: 'no-rinkukado',
+	containerSelector: 'p',
 };
 
 const facts = ( overrides: Partial< LinkFacts > = {} ): LinkFacts => ( {

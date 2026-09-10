@@ -35,7 +35,7 @@ final readonly class PopoverRegion
 
     private function render(): void
     {
-        if (is_admin() || is_feed()) {
+        if (!is_singular()) {
             return;
         }
 
@@ -95,6 +95,7 @@ final readonly class PopoverRegion
             'endpoint' => rest_url('rinkukado/v1/preview'),
             'nonce' => is_user_logged_in() ? wp_create_nonce('wp_rest') : '',
             'rootSelector' => $this->config->rootSelector(),
+            'containerSelector' => $this->config->containerSelector(),
             'denyClass' => $this->config->denyClass(),
             'timings' => $this->config->timings(),
             'sheetQuery' => self::SHEET_QUERY,

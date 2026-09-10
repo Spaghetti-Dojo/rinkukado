@@ -62,6 +62,21 @@ export function staysInLink(
 }
 
 /**
+ * Tells whether the link sits inside the element that the configuration
+ * names. The default keeps the popover on the links of the prose. A
+ * selector that the browser rejects turns the whole feature off.
+ * @param link     - The link of the event.
+ * @param selector - The CSS selector of the container.
+ */
+function isInContainer( link: HTMLAnchorElement, selector: string ): boolean {
+	try {
+		return link.closest( selector ) !== null;
+	} catch {
+		return false;
+	}
+}
+
+/**
  * Finds the closest link of the target, when the policy allows it.
  * @param target  - The target of the DOM event.
  * @param options - The policy options of the current page.
@@ -76,7 +91,7 @@ export function previewableLink(
 
 	const link = target.closest< HTMLAnchorElement >( 'a[href]' );
 
-	if ( link === null ) {
+	if ( link === null || ! isInContainer( link, options.containerSelector ) ) {
 		return null;
 	}
 

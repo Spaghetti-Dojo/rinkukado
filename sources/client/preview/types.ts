@@ -24,6 +24,7 @@ export type ServerState = {
 	endpoint: string;
 	nonce: string;
 	rootSelector: string;
+	containerSelector: string;
 	denyClass: string;
 	timings: Timings;
 	sheetQuery: string;

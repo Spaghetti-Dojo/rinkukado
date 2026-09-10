@@ -133,6 +133,7 @@ function policyOptions(): PolicyOptions {
 		),
 		currentPath: window.location.pathname,
 		denyClass: state.denyClass,
+		containerSelector: state.containerSelector,
 	};
 
 	return options;
