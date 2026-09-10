@@ -120,8 +120,12 @@ const { state }: { state: State } = store( 'rinkukado', {
 	},
 } );
 
+// Every part of the options holds for the whole page, so the parse of the
+// endpoint runs once instead of once per pointer or focus event.
+let options: PolicyOptions | null = null;
+
 function policyOptions(): PolicyOptions {
-	return {
+	options ??= {
 		siteOrigin: window.location.origin,
 		homePath: new URL( state.endpoint ).pathname.replace(
 			/wp-json.*$/,
@@ -130,6 +134,8 @@ function policyOptions(): PolicyOptions {
 		currentPath: window.location.pathname,
 		denyClass: state.denyClass,
 	};
+
+	return options;
 }
 
 function endpointOf(): Endpoint {

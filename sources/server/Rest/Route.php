@@ -26,11 +26,6 @@ class Route
         return new self($namespace, $route, Method::GET, $schema, $controller);
     }
 
-    public static function post(string $namespace, string $route, Schema $schema, Controller $controller): self
-    {
-        return new self($namespace, $route, Method::POST, $schema, $controller);
-    }
-
     final private function __construct(
         private readonly string $namespace,
         private readonly string $route,

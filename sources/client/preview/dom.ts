@@ -96,6 +96,24 @@ export function staysInDialog(
 	return related instanceof Node && ( dialog?.contains( related ) ?? false );
 }
 
+// The support of the browser cannot change while the page lives, so the
+// query runs once and every later placement reads the answer.
+let anchorSupport: boolean | null = null;
+
+function supportsAnchor(): boolean {
+	if ( anchorSupport === null ) {
+		// `window` typings claim `CSS` always exists, but an older browser
+		// or a non-browser render target can leave it undefined. The cast
+		// below widens the local type back to optional, so the check is
+		// real.
+		const css = ( window as { CSS?: typeof window.CSS } ).CSS;
+
+		anchorSupport = css?.supports( 'anchor-name: --a' ) === true;
+	}
+
+	return anchorSupport;
+}
+
 function placeWithAnchor( link: HTMLAnchorElement ): void {
 	link.style.setProperty( 'anchor-name', ANCHOR_NAME );
 }
@@ -129,12 +147,7 @@ export function placeDialog(
 	link: HTMLAnchorElement,
 	dialog: HTMLElement
 ): void {
-	// `window` typings claim `CSS` always exists, but an older browser or a
-	// non-browser render target can leave it undefined. The cast below
-	// widens the local type back to optional, so the check below is real.
-	const css = ( window as { CSS?: typeof window.CSS } ).CSS;
-
-	if ( css?.supports( 'anchor-name: --a' ) === true ) {
+	if ( supportsAnchor() ) {
 		placeWithAnchor( link );
 
 		return;

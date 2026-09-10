@@ -9,6 +9,5 @@ namespace SpaghettiDojo\Rinkukado\Rest;
  */
 enum Method: string
 {
-    case POST = 'POST';
     case GET = 'GET';
 }
