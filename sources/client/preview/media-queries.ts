@@ -1,3 +1,8 @@
+/**
+ * The watcher of the media queries. It reports the mode of the feature at
+ * the start and again at each rotation or resize.
+ */
+
 import { modeOf } from './dom';
 
 import type { Mode } from './dom';

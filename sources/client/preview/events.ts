@@ -1,3 +1,7 @@
+/**
+ * The delegated listeners that turn page events into intent machine events.
+ */
+
 import { placeDialog, staysInDialog, staysInLink } from './dom';
 import { linkOf } from './context';
 

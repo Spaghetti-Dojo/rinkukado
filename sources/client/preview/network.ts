@@ -1,3 +1,9 @@
+/**
+ * The network layer of the preview. It requests the preview of a link from
+ * the REST endpoint, validates the payload, and caches each settled result
+ * for the page session.
+ */
+
 import type { Preview } from './types';
 
 /**

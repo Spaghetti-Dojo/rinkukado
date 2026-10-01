@@ -1,3 +1,9 @@
+/**
+ * The DOM helpers of the preview. They find the root and the previewable
+ * link, read the mode from the media queries, and place the dialog next to
+ * its link.
+ */
+
 import { factsFromLink, isPreviewable } from './policy';
 import { computePosition } from './position';
 

@@ -1,3 +1,9 @@
+/**
+ * The driver of the intent machine. It sends each event to the machine, runs
+ * the commands that the machine returns, and keeps one timer for the next
+ * deadline of the machine.
+ */
+
 import { initial, nextDeadline, reduce } from './intent';
 
 import type { Command, IntentEvent, Machine } from './intent';

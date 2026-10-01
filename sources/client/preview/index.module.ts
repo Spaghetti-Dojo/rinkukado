@@ -1,3 +1,9 @@
+/**
+ * The entry point of the preview. It registers the `rinkukado` store of the
+ * Interactivity API, and connects the driver, the fetcher, the listeners and
+ * the media queries to the state of the dialog.
+ */
+
 import { getConfig, getElement, store } from '@wordpress/interactivity';
 
 import { bind, returnFocusOnShiftTab } from './events';

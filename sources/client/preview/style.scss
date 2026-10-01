@@ -1,3 +1,7 @@
+// The styles of the preview: the anchored popover in the hover mode, and
+// the bottom sheet in the sheet mode. The custom properties let a theme
+// override the colours.
+
 @use "../styles/mixins/units";
 
 // The breakpoint of WordPress. $break-medium is 782px in the branches wp/6.9,

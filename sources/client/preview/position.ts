@@ -1,3 +1,8 @@
+/**
+ * The geometry of the popover. It computes the side and the position of the
+ * popover from the rectangle of the link and the size of the viewport.
+ */
+
 export type Rect = { top: number; left: number; width: number; height: number };
 export type Size = { width: number; height: number };
 export type Viewport = { width: number; height: number };

@@ -1,4 +1,9 @@
 /**
+ * The policy of the preview. It decides from the facts of a link, without
+ * the DOM, whether the link can show a preview.
+ */
+
+/**
  * The facts of a link that the decision needs. The DOM stays outside of the
  * decision, so the rules are testable without a document.
  */

@@ -1,3 +1,8 @@
+/**
+ * The shared types of the preview: the preview payload, the timings, and
+ * the configuration and the state that the server gives to the store.
+ */
+
 export type Thumbnail = {
 	src: string;
 	srcset: string;

@@ -1,3 +1,9 @@
+/**
+ * The intent machine of the preview. It is a pure reducer: it takes the
+ * machine, an event and the timings, and gives the next machine with the
+ * commands to run. It has no DOM and no timer.
+ */
+
 import type { Timings } from './types';
 
 export type Phase = 'idle' | 'intent' | 'open';

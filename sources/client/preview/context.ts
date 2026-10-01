@@ -1,3 +1,9 @@
+/**
+ * The shared context of the delegated listeners. It holds the mutable
+ * references of the region and the callbacks that the listeners use to read
+ * the store and to send events to the driver.
+ */
+
 import { previewableLink } from './dom';
 
 import type { Mode } from './dom';
