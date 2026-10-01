@@ -23,7 +23,7 @@ are no fallback values, because a fallback hides a bug of the server.
 ### 1) Find or add the helpers
 
 1. Search the client sources of the project for `initializeServerConfig`.
-   If you find it, its directory is `<helpers-dir>`. Go to step 2.
+   If you find it, its directory is `<helpers-dir>`. Go to section 2) Write the schemas.
 2. Read the project layout in `CLAUDE.md` or `AGENTS.md`. Find the directory
    for client code that more than one store shares. If the layout does not
    tell it, ask the user.
@@ -66,7 +66,8 @@ export type State = z.infer< typeof stateSchema >;
 export type Context = z.infer< typeof contextSchema >;
 ```
 
-Do not write a type for server data by hand.
+Put the types in `types.ts` next to the store. Section 4 imports them from
+`./types`. Do not write a type for server data by hand.
 
 ### 4) Validate in `init`
 
@@ -121,6 +122,9 @@ const { state } = store( STORE, {
 } );
 ```
 
+- If the store has no config, `serverConfig` cannot be the guard. Use a
+  separate module flag, for example `let validated = false`. Set it after the
+  state check passes, so a later `init` does not reset the state.
 - Validate in this sequence: config, then state, then context.
 - Give the state proxy and the context proxy to the helpers as arguments.
   The helpers write into the proxy with `Object.assign`.
@@ -142,3 +146,9 @@ Read `references/schema-rules.md`, section "Tests".
 - Do not read the config before `init`. `config()` throws in that case.
 - `Readonly` on the config is a check at compile time only.
 - Do not use `.default()` or `.catch()` on a schema of server data.
+- `getServerContext()` returns the merged context of the element. The keys of
+  a parent `data-wp-context` of the same namespace are present too. A
+  `z.strictObject` schema of the context must hold these inherited keys.
+- If the store defines a getter (derived state) with the same name as a
+  server key, `Object.assign` into the state fails. Leave the keys that have a
+  getter out of the state schema.
