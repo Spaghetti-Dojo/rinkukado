@@ -3,7 +3,7 @@
  * Each schema holds exactly the keys that the server sends.
  */
 
-import { z } from '../interactivity/zod';
+import * as z from '../interactivity/zod';
 
 const nonNegativeInt = (): z.ZodMiniInt => z.int().check( z.nonnegative() );
 

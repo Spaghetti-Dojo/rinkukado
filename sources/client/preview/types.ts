@@ -4,7 +4,7 @@
  * of the server types.
  */
 
-import type { z } from '../interactivity/zod';
+import type * as z from '../interactivity/zod';
 import type { configSchema, stateSchema, timingsSchema } from './schemas';
 
 export type Thumbnail = {

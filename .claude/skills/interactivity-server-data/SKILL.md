@@ -40,7 +40,7 @@ Put the schemas in `schemas.ts` next to the store. Read
 `references/schema-rules.md` before you write one.
 
 ```ts
-import { z } from '<helpers-dir>/zod';
+import * as z from '<helpers-dir>/zod';
 
 // Matches the PHP code that calls wp_interactivity_config().
 export const configSchema = z.strictObject( {
@@ -58,7 +58,7 @@ export const contextSchema = z.strictObject( { count: z.int() } );
 ### 3) Take the types from the schemas
 
 ```ts
-import type { z } from '<helpers-dir>/zod';
+import type * as z from '<helpers-dir>/zod';
 import type { configSchema, contextSchema, stateSchema } from './schemas';
 
 export type Config = z.infer< typeof configSchema >;

@@ -10,7 +10,7 @@ import {
 	getServerState,
 } from '@wordpress/interactivity';
 
-import { z } from './zod';
+import * as z from './zod';
 
 export type Kind = 'config' | 'state' | 'context';
 

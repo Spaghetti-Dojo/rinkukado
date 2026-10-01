@@ -4,9 +4,11 @@
  * `zod/mini` reports only "Invalid input".
  */
 
-import * as z from 'zod/mini';
+import { config } from 'zod/mini';
 import { en } from 'zod/locales';
 
-z.config( en() );
+config( en() );
 
-export { z };
+// Export each binding by name. A namespace object as one value export
+// stops the tree shaking, and the bundle then holds all of Zod.
+export * from 'zod/mini';

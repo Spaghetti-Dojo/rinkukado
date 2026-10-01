@@ -5,7 +5,7 @@ import {
 	initializeServerState,
 	sanitize,
 } from '../../../sources/client/interactivity/server-data';
-import { z } from '../../../sources/client/interactivity/zod';
+import * as z from '../../../sources/client/interactivity/zod';
 
 import type { Source } from '../../../sources/client/interactivity/server-data';
 
