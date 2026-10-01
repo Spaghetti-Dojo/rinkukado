@@ -4,41 +4,26 @@
  * the media queries to the state of the dialog.
  */
 
-import { getConfig, getElement, store } from '@wordpress/interactivity';
+import { getElement, store } from '@wordpress/interactivity';
 
 import { bind, returnFocusOnShiftTab } from './events';
 import { createDriver } from './driver';
 import { placeDialog, resolveRoot, unplaceDialog } from './dom';
 import { watchQueries } from './media-queries';
 import { createFetcher, readPreview } from './network';
+import { config, STORE, validateServerData } from './server';
 
 import type { EventContext, Refs } from './context';
 import type { PolicyOptions } from './policy';
 import type { Endpoint } from './network';
 import type { Mode } from './dom';
-import type { Preview, ServerConfig, ServerState, Timings } from './types';
+import type { Preview, ServerState, Timings } from './types';
 
 import './style.scss';
 
 export { readPreview, resolveRoot };
 
-type State = ServerState & {
-	isOpen: boolean;
-	isSheet: boolean;
-	hasThumbnail: boolean;
-	title: string;
-	excerpt: string;
-	permalink: string;
-	thumbnailSrc: string;
-	thumbnailSrcset: string;
-	thumbnailAlt: string;
-};
-
-// The configuration does not change while the page is open, so no directive
-// reads it and it stays out of the state.
-function config(): ServerConfig {
-	return getConfig( 'rinkukado' ) as ServerConfig;
-}
+type State = ServerState;
 
 const fetcher = createFetcher();
 
@@ -76,7 +61,7 @@ function bindQueries(): void {
 	watchQueries( config().sheetQuery, config().hoverQuery, applyMode );
 }
 
-const { state }: { state: State } = store( 'rinkukado', {
+const { state }: { state: State } = store( STORE, {
 	state: {} as State,
 
 	actions: {
@@ -98,6 +83,8 @@ const { state }: { state: State } = store( 'rinkukado', {
 
 	callbacks: {
 		init(): void {
+			validateServerData( state );
+
 			const region = getElement().ref as HTMLElement | null;
 
 			if ( region === null ) {
