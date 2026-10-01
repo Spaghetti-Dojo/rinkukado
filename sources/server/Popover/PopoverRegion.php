@@ -7,7 +7,8 @@ namespace SpaghettiDojo\Rinkukado\Popover;
 use SpaghettiDojo\Rinkukado\Config;
 
 /**
- * Prints the single dialog of the page and seeds the state of the store.
+ * Prints the single dialog of the page, seeds the configuration of the store
+ * and seeds the state of the store.
  */
 final readonly class PopoverRegion
 {
@@ -39,6 +40,7 @@ final readonly class PopoverRegion
             return;
         }
 
+        wp_interactivity_config(self::STORE, $this->clientConfig());
         wp_interactivity_state(self::STORE, $this->state());
 
         ?>
@@ -87,9 +89,12 @@ final readonly class PopoverRegion
     }
 
     /**
+     * The values that do not change while the page is open. No directive
+     * reads them.
+     *
      * @return array<string, mixed>
      */
-    private function state(): array
+    private function clientConfig(): array
     {
         return [
             'endpoint' => rest_url('rinkukado/v1/preview'),
@@ -100,6 +105,17 @@ final readonly class PopoverRegion
             'timings' => $this->config->timings(),
             'sheetQuery' => self::SHEET_QUERY,
             'hoverQuery' => self::HOVER_QUERY,
+        ];
+    }
+
+    /**
+     * The values that the directives of the dialog read.
+     *
+     * @return array<string, mixed>
+     */
+    private function state(): array
+    {
+        return [
             'closeLabel' => __('Close the preview', 'rinkukado'),
             'ctaLabel' => __('Read the article', 'rinkukado'),
             'isOpen' => false,

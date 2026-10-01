@@ -20,7 +20,7 @@ export type Timings = {
 	close: number;
 };
 
-export type ServerState = {
+export type ServerConfig = {
 	endpoint: string;
 	nonce: string;
 	rootSelector: string;
@@ -29,6 +29,9 @@ export type ServerState = {
 	timings: Timings;
 	sheetQuery: string;
 	hoverQuery: string;
+};
+
+export type ServerState = {
 	closeLabel: string;
 	ctaLabel: string;
 };

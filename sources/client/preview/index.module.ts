@@ -1,4 +1,4 @@
-import { getElement, store } from '@wordpress/interactivity';
+import { getConfig, getElement, store } from '@wordpress/interactivity';
 
 import { bind, returnFocusOnShiftTab } from './events';
 import { createDriver } from './driver';
@@ -10,7 +10,7 @@ import type { PolicyOptions } from './policy';
 import type { Endpoint } from './network';
 import type { Mode } from './dom';
 import type { Machine } from './intent';
-import type { Preview, ServerState, Timings } from './types';
+import type { Preview, ServerConfig, ServerState, Timings } from './types';
 
 import './style.scss';
 
@@ -27,6 +27,12 @@ type State = ServerState & {
 	thumbnailSrcset: string;
 	thumbnailAlt: string;
 };
+
+// The configuration does not change while the page is open, so no directive
+// reads it and it stays out of the state.
+function config(): ServerConfig {
+	return getConfig( 'rinkukado' ) as ServerConfig;
+}
 
 const fetcher = createFetcher();
 
@@ -54,8 +60,8 @@ function watchQueries(): void {
 
 	queriesBound = true;
 
-	const sheet = window.matchMedia( state.sheetQuery );
-	const hover = window.matchMedia( state.hoverQuery );
+	const sheet = window.matchMedia( config().sheetQuery );
+	const hover = window.matchMedia( config().hoverQuery );
 
 	const apply = (): void => {
 		mode = modeOf( sheet.matches, hover.matches );
@@ -108,7 +114,7 @@ const { state }: { state: State } = store( 'rinkukado', {
 					'.rinkukado__close'
 				);
 
-			const root = resolveRoot( document, state.rootSelector );
+			const root = resolveRoot( document, config().rootSelector );
 
 			if ( root === null || refs.dialog === null ) {
 				return;
@@ -127,20 +133,20 @@ let options: PolicyOptions | null = null;
 function policyOptions(): PolicyOptions {
 	options ??= {
 		siteOrigin: window.location.origin,
-		homePath: new URL( state.endpoint ).pathname.replace(
+		homePath: new URL( config().endpoint ).pathname.replace(
 			/wp-json.*$/,
 			''
 		),
 		currentPath: window.location.pathname,
-		denyClass: state.denyClass,
-		containerSelector: state.containerSelector,
+		denyClass: config().denyClass,
+		containerSelector: config().containerSelector,
 	};
 
 	return options;
 }
 
 function endpointOf(): Endpoint {
-	return { url: state.endpoint, nonce: state.nonce };
+	return { url: config().endpoint, nonce: config().nonce };
 }
 
 function applyPreview( preview: Preview ): void {
@@ -245,7 +251,7 @@ function close( href: string | null ): void {
 }
 
 const driver = createDriver( {
-	timings: (): Timings => state.timings,
+	timings: (): Timings => config().timings,
 	prefetch: ( href: string ): void => {
 		void fetcher.load( href, endpointOf() );
 	},

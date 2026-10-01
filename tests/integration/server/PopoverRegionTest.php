@@ -43,14 +43,24 @@ it('seeds no nonce for an anonymous visitor', function (): void {
     do_action('wp_footer');
     ob_get_clean();
 
+    $config = wp_interactivity_config('rinkukado');
+
+    expect($config['nonce'])->toBe('')
+        ->and($config['sheetQuery'])->toBe('(pointer: coarse)')
+        ->and($config['hoverQuery'])
+            ->toBe('(hover: hover) and (pointer: fine) and (min-width: 782px)')
+        ->and($config['rootSelector'])->toBe('main')
+        ->and($config['containerSelector'])->toBe('p');
+});
+
+it('keeps the configuration out of the state', function (): void {
+    ob_start();
+    do_action('wp_footer');
+    ob_get_clean();
+
     $state = wp_interactivity_state('rinkukado');
 
-    expect($state['nonce'])->toBe('')
-        ->and($state['sheetQuery'])->toBe('(pointer: coarse)')
-        ->and($state['hoverQuery'])
-            ->toBe('(hover: hover) and (pointer: fine) and (min-width: 782px)')
-        ->and($state['rootSelector'])->toBe('main')
-        ->and($state['containerSelector'])->toBe('p')
+    expect($state)->not->toHaveKeys(['endpoint', 'nonce', 'sheetQuery', 'hoverQuery'])
         ->and($state['isOpen'])->toBeFalse();
 });
 
@@ -66,7 +76,7 @@ it('seeds a nonce for a logged in user', function (): void {
     do_action('wp_footer');
     ob_get_clean();
 
-    expect(wp_interactivity_state('rinkukado')['nonce'])->not->toBe('');
+    expect(wp_interactivity_config('rinkukado')['nonce'])->not->toBe('');
 
     wp_set_current_user(0);
 });
