@@ -2,7 +2,8 @@ import { getConfig, getElement, store } from '@wordpress/interactivity';
 
 import { bind, returnFocusOnShiftTab } from './events';
 import { createDriver } from './driver';
-import { modeOf, placeDialog, resolveRoot, unplaceDialog } from './dom';
+import { placeDialog, resolveRoot, unplaceDialog } from './dom';
+import { watchQueries } from './media-queries';
 import { createFetcher, readPreview } from './network';
 
 import type { EventContext, Refs } from './context';
@@ -47,36 +48,27 @@ const refs: Refs = {
 	returningFocus: false,
 };
 
-// Keeps the mode correct on every rotation and resize, not only at the moment
-// the popover opens. A guard stops a second registration when `init` runs
-// more than once.
+// A guard stops a second registration when `init` runs more than once.
 let queriesBound = false;
 let mode: Mode = 'off';
 
-function watchQueries(): void {
+function applyMode( next: Mode ): void {
+	mode = next;
+	state.isSheet = mode === 'sheet';
+
+	// A resize into the off mode leaves no popover behind.
+	if ( mode === 'off' && state.isOpen ) {
+		driver.send( { type: 'escape' } );
+	}
+}
+
+function bindQueries(): void {
 	if ( queriesBound ) {
 		return;
 	}
 
 	queriesBound = true;
-
-	const sheet = window.matchMedia( config().sheetQuery );
-	const hover = window.matchMedia( config().hoverQuery );
-
-	const apply = (): void => {
-		mode = modeOf( sheet.matches, hover.matches );
-		state.isSheet = mode === 'sheet';
-
-		// A resize into the off mode leaves no popover behind.
-		if ( mode === 'off' && state.isOpen ) {
-			driver.send( { type: 'escape' } );
-		}
-	};
-
-	apply();
-
-	sheet.addEventListener( 'change', apply );
-	hover.addEventListener( 'change', apply );
+	watchQueries( config().sheetQuery, config().hoverQuery, applyMode );
 }
 
 const { state }: { state: State } = store( 'rinkukado', {
@@ -120,7 +112,7 @@ const { state }: { state: State } = store( 'rinkukado', {
 				return;
 			}
 
-			watchQueries();
+			bindQueries();
 			bind( root, context );
 		},
 	},
