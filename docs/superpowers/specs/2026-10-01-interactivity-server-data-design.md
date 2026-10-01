@@ -41,6 +41,12 @@ A probe with Zod 4.6.5, bundled with esbuild, minified, gzip. The code holds
 | `zod` (full) | 26.2 kB |
 | `zod/mini` with the English locale | 6.0 kB |
 
+The probe is not the same as the webpack build. The measure of
+`build/preview/index.js` is 13,224 bytes gzip, against 4,652 bytes before the
+change. The first form of `zod.ts` (`export { z }`) gave 93,634 bytes, because
+webpack kept the whole namespace. The final form re-exports each binding with
+`export * from 'zod/mini'`, so the tree shaking works.
+
 Without a locale, `zod/mini` gives only `✖ Invalid input`, with no field and
 no cause. With the English locale, the message names the field and the cause:
 
@@ -84,19 +90,20 @@ a test can give a plain object.
 
 It re-exports `zod/mini` and loads the English locale one time. Every store
 imports `z` from this file, never from `zod/mini` or `zod`, so the locale is
-always loaded.
+always loaded. A consumer writes `import * as z from '../interactivity/zod'`,
+or `import type * as z from …` when it needs only types.
 
 ```ts
-import * as z from 'zod/mini';
-import en from 'zod/v4/locales/en.js';
+import { config } from 'zod/mini';
+import { en } from 'zod/locales';
 
-z.config( en() );
+config( en() );
 
-export { z };
+export * from 'zod/mini';
 ```
 
-The implementation verifies the import path of the locale in the
-`wp-scripts` build.
+`export { z }` is not correct. A namespace object as one value export stops
+the tree shaking (see 2.1).
 
 ### 3.2 `sources/client/interactivity/server-data.ts`
 
@@ -106,8 +113,7 @@ type Kind = 'config' | 'state' | 'context';
 export function sanitize< S extends z.ZodMiniType >(
 	schema: S,
 	data: unknown,
-	store: string,
-	kind: Kind
+	source: { store: string; kind: Kind }
 ): z.infer< S >;
 
 export function initializeServerConfig< S extends z.ZodMiniType >(
@@ -128,7 +134,7 @@ export function initializeServerContext< S extends z.ZodMiniType >(
 ): z.infer< S >;
 ```
 
-- `sanitize` calls `schema.parse( data )`. It catches only a `ZodError`, and
+- `sanitize` calls `schema.parse( data )`. It catches only a `z.core.$ZodError`, and
   throws a new `Error` with this message:
   `Store "<store>": the server <kind> is not valid.\n<prettifyError output>`.
   It throws every other error again without a change.
@@ -148,7 +154,7 @@ export function initializeServerContext< S extends z.ZodMiniType >(
 The schemas hold exactly the keys that `PopoverRegion` sends.
 
 ```ts
-import { z } from '../interactivity/zod';
+import * as z from '../interactivity/zod';
 
 const nonNegativeInt = () => z.int().check( z.nonnegative() );
 const nonEmptyString = () => z.string().check( z.minLength( 1 ) );
@@ -162,7 +168,7 @@ export const timingsSchema = z.strictObject( {
 
 // Matches PopoverRegion::clientConfig().
 export const configSchema = z.strictObject( {
-	endpoint: z.url(),
+	endpoint: z.url( { protocol: /^https?$/ } ), // a plain z.url() accepts javascript:
 	nonce: z.string(), // empty for a visitor who is not logged in
 	rootSelector: nonEmptyString(),
 	containerSelector: nonEmptyString(),
@@ -203,18 +209,28 @@ context, so it has no context schema.
 ### 4.3 `sources/client/preview/index.module.ts`
 
 - A constant `STORE = 'rinkukado'` replaces the string literal.
-- The local `State` type becomes `ServerState`, because the schema now holds
-  every key of the state.
+- The local `State` type is removed and the code uses `ServerState`, because
+  the schema holds every key of the state.
 - `let serverConfig: ServerConfig | null = null;` caches the config.
 - `config()` returns `serverConfig`. If `serverConfig` is `null`, it throws,
   so no code can read config that was not validated.
-- `init` starts with these two calls. After them, the binding code runs
+- The first `init` only checks the config and the state, because a later
+  `init` must not reset the state of an open popover. A function
+  `validateServerData( state )` in `server.ts` does this. It returns at once
+  if `serverConfig` is not `null`.
+- `validateServerData` caches the config last, so a failed state check
+  repeats at the next `init`.
+- `init` calls `validateServerData( state )`. After it, the binding code runs
   without a change.
 
 ```ts
-serverConfig = initializeServerConfig( STORE, configSchema );
+const parsed = initializeServerConfig( STORE, configSchema );
+
 initializeServerState( STORE, stateSchema, state );
+serverConfig = parsed;
 ```
+
+`config()` also lives in `server.ts`.
 
 ### 4.4 `package.json`
 
@@ -285,7 +301,7 @@ you add or change a Zod schema for that data."
 
 - `.claude/skills/wp-interactivity-api/SKILL.md` gets one line that points to
   the new skill.
-- `.claude/skills/wordpress-router/SKILL.md` gets one line that sends store and
+- `.claude/skills/wordpress-router/references/decision-tree.md` gets one line that sends store and
   server data tasks to the new skill.
 - `.claude/CLAUDE.md` gets one line in "Project Layout":
   `sources/client/interactivity/` holds the shared helpers of the Interactivity

@@ -26,6 +26,8 @@
 
 ### Changes to the spec found while planning
 
+Note: commit c5df107 changed the export form of `zod.ts` to `export * from 'zod/mini'`. The bundle is 13.2 kB gzip. The task code blocks below show the earlier form.
+
 1. `sanitize` takes `( schema, data, source: Source )` with `type Source = { store: string; kind: Kind }`. Four parameters break `max-params` 3.
 2. The locale import is `import { en } from 'zod/locales'`. It works in ESM and CommonJS (Jest), and the bundle stays at 6.0 kB gzip.
 3. `zod/mini` has no `z.ZodError`. The `instanceof` check uses `z.core.$ZodError`.
