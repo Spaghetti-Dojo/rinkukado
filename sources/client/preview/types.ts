@@ -1,7 +1,11 @@
 /**
- * The shared types of the preview: the preview payload, the timings, and
- * the configuration and the state that the server gives to the store.
+ * The shared types of the preview: the preview payload, and the types of
+ * the data that the server gives to the store. The schemas are the source
+ * of the server types.
  */
+
+import type { z } from '../interactivity/zod';
+import type { configSchema, stateSchema, timingsSchema } from './schemas';
 
 export type Thumbnail = {
 	src: string;
@@ -19,24 +23,8 @@ export type Preview = {
 	thumbnail: Thumbnail | null;
 };
 
-export type Timings = {
-	prefetch: number;
-	open: number;
-	close: number;
-};
+export type Timings = z.infer< typeof timingsSchema >;
 
-export type ServerConfig = {
-	endpoint: string;
-	nonce: string;
-	rootSelector: string;
-	containerSelector: string;
-	denyClass: string;
-	timings: Timings;
-	sheetQuery: string;
-	hoverQuery: string;
-};
+export type ServerConfig = z.infer< typeof configSchema >;
 
-export type ServerState = {
-	closeLabel: string;
-	ctaLabel: string;
-};
+export type ServerState = z.infer< typeof stateSchema >;
