@@ -75,6 +75,7 @@ it( 'binds nothing when the config is not valid', async () => {
 
 it( 'binds nothing and keeps no config when the state is not valid', async () => {
 	const definition = await load( config, { ...state, isOpen: 'no' } );
+	const listen = jest.spyOn( root(), 'addEventListener' );
 
 	expect( () => {
 		definition.callbacks.init();
@@ -83,6 +84,7 @@ it( 'binds nothing and keeps no config when the state is not valid', async () =>
 		definition.callbacks.init();
 	} ).toThrow( 'the server state is not valid' );
 	expect( window.matchMedia ).not.toHaveBeenCalled();
+	expect( listen ).not.toHaveBeenCalled();
 } );
 
 it( 'binds the listeners when the data is valid', async () => {
@@ -103,4 +105,14 @@ it( 'keeps the state when init runs a second time', async () => {
 	definition.callbacks.init();
 
 	expect( definition.state.isOpen ).toBe( true );
+} );
+
+it( 'throws when the config is read before init', async () => {
+	jest.resetModules();
+
+	const { config: read } = await import(
+		'../../../sources/client/preview/server'
+	);
+
+	expect( () => read() ).toThrow( 'the config was read before init' );
 } );

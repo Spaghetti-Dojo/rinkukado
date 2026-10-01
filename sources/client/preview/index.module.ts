@@ -23,8 +23,6 @@ import './style.scss';
 
 export { readPreview, resolveRoot };
 
-type State = ServerState;
-
 const fetcher = createFetcher();
 
 const refs: Refs = {
@@ -61,8 +59,8 @@ function bindQueries(): void {
 	watchQueries( config().sheetQuery, config().hoverQuery, applyMode );
 }
 
-const { state }: { state: State } = store( STORE, {
-	state: {} as State,
+const { state }: { state: ServerState } = store( STORE, {
+	state: {} as ServerState,
 
 	actions: {
 		close(): void {

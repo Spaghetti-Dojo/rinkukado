@@ -87,3 +87,15 @@ it( 'rejects a state without a label', () => {
 
 	expect( stateSchema.safeParse( rest ).success ).toBe( false );
 } );
+
+it( 'rejects a state key that the server does not send', () => {
+	expect( stateSchema.safeParse( { ...state, extra: 1 } ).success ).toBe(
+		false
+	);
+} );
+
+it( 'rejects a state value of the wrong type', () => {
+	expect( stateSchema.safeParse( { ...state, isOpen: 'no' } ).success ).toBe(
+		false
+	);
+} );

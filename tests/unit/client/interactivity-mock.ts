@@ -19,8 +19,8 @@ export const getElement = (): { ref: HTMLElement } => ( {
 } );
 export const getContext = (): Record< string, never > => ( {} );
 export const getConfig = ( namespace: string ): unknown =>
-	server.config[ namespace ] ?? {};
+	server.config[ namespace ];
 export const getServerState = ( namespace: string ): unknown =>
-	server.state[ namespace ] ?? {};
+	server.state[ namespace ];
 export const getServerContext = ( namespace: string ): unknown =>
-	server.context[ namespace ] ?? {};
+	server.context[ namespace ];
