@@ -7,6 +7,8 @@ Route by the intent of the request.
 
 - **Interactivity API / data-wp-* directives / @wordpress/interactivity / viewScriptModule**
   - Route → `wp-interactivity-api`.
+- **Server data of a store / getConfig / getServerState / getServerContext / Zod schema**
+  - Route → `interactivity-server-data`.
 - **Abilities API / wp_register_ability / wp-abilities/v1 / @wordpress/abilities**
   - Route → `wp-abilities-api`.
 - **Blocks / block.json / registerBlockType / attributes / save serialization**

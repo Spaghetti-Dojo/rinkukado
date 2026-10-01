@@ -8,6 +8,7 @@
 
 - `sources/server/` — PHP, namespace `SpaghettiDojo\Rinkukado`, one directory per module.
 - `sources/client/blocks/` — one directory per block. It holds every file of the block: `block.json`, `render.php`, `view.ts` and `style.scss`.
+- `sources/client/interactivity/` — the shared helpers of the Interactivity API stores. They are a copy of `.claude/skills/interactivity-server-data/assets/`: change the skill first.
 - `sources/server/Blocks/` — the block module and the registrar. Not specific to one block.
 - `tests/` — four layers. Read `docs/testing.md` before you write a test.
   - `tests/unit/server/` — Pest on Brain Monkey. No WordPress.

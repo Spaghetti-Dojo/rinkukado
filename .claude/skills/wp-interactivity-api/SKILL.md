@@ -52,6 +52,9 @@ Locate store definitions and confirm:
 - actions (mutations),
 - callbacks/event handlers used by `data-wp-on--*`.
 
+If the store reads config, state or context from the server, read the
+skill `interactivity-server-data` before you change the store.
+
 ### 3) Server-side rendering (best practice)
 
 **Pre-render HTML on the server** before outputting to ensure:
