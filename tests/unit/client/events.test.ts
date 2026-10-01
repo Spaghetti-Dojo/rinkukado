@@ -1,14 +1,10 @@
 import { bind } from '../../../sources/client/preview/events';
-import { initial } from '../../../sources/client/preview/intent';
 
 import type {
 	EventContext,
 	Refs,
 } from '../../../sources/client/preview/context';
-import type {
-	IntentEvent,
-	Machine,
-} from '../../../sources/client/preview/intent';
+import type { IntentEvent } from '../../../sources/client/preview/intent';
 import type { Availability } from '../../../sources/client/preview/network';
 import type { Mode } from '../../../sources/client/preview/dom';
 
@@ -40,7 +36,7 @@ function createHarness( overrides: Partial< EventContext > = {} ): Harness {
 		send: ( event ) => {
 			sent.push( event );
 		},
-		machine: () => initial,
+		openHref: () => null,
 		isOpen: () => false,
 		mode: (): Mode => 'hover',
 		policyOptions: () => ( {
@@ -75,16 +71,6 @@ function types( sent: Array< IntentEvent > ): Array< string > {
 // rather than a media query.
 function inMode( value: Mode ): Partial< EventContext > {
 	return { mode: (): Mode => value };
-}
-
-function openMachine( linkHref: string ): Machine {
-	return {
-		phase: 'open',
-		href: linkHref,
-		prefetchAt: null,
-		openAt: null,
-		closeAt: null,
-	};
 }
 
 function clickLink( link: Element ): MouseEvent {
@@ -195,8 +181,10 @@ describe( 'onClick in the sheet mode', () => {
 
 	it( 'prevents the default on the second tap, so only one path navigates', () => {
 		const link = document.getElementById( 'link' )! as HTMLAnchorElement;
-		const machine = (): Machine => openMachine( link.href );
-		const harness = bindHarness( { ...inMode( 'sheet' ), machine } );
+		const harness = bindHarness( {
+			...inMode( 'sheet' ),
+			openHref: () => link.href,
+		} );
 		const event = clickLink( link );
 
 		expect( event.defaultPrevented ).toBe( true );

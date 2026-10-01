@@ -16,7 +16,6 @@ import type { EventContext, Refs } from './context';
 import type { PolicyOptions } from './policy';
 import type { Endpoint } from './network';
 import type { Mode } from './dom';
-import type { Machine } from './intent';
 import type { Preview, ServerConfig, ServerState, Timings } from './types';
 
 import './style.scss';
@@ -272,7 +271,11 @@ const context: EventContext = {
 	send: ( event ): void => {
 		driver.send( event );
 	},
-	machine: (): Machine => driver.machine(),
+	openHref: (): string | null => {
+		const machine = driver.machine();
+
+		return machine.phase === 'open' ? machine.href : null;
+	},
 	isOpen: (): boolean => state.isOpen,
 	mode: (): Mode => mode,
 	policyOptions,

@@ -92,10 +92,10 @@ function onDialogPointerOut( context: EventContext, event: Event ): void {
 }
 
 function cancelClose( context: EventContext ): void {
-	const machine = context.machine();
+	const href = context.openHref();
 
-	if ( machine.phase === 'open' && machine.href !== null ) {
-		context.send( { type: 'enter', href: machine.href, at: Date.now() } );
+	if ( href !== null ) {
+		context.send( { type: 'enter', href, at: Date.now() } );
 	}
 }
 

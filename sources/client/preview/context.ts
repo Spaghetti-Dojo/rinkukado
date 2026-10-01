@@ -8,7 +8,7 @@ import { previewableLink } from './dom';
 
 import type { Mode } from './dom';
 import type { PolicyOptions } from './policy';
-import type { IntentEvent, Machine } from './intent';
+import type { IntentEvent } from './intent';
 import type { Availability } from './network';
 
 /**
@@ -34,11 +34,13 @@ export type Refs = {
 
 /**
  * What the event handlers need from the store, without importing it.
+ * `openHref` gives the href of the open preview, or null when no preview
+ * is open. The handlers never read the machine itself.
  */
 export type EventContext = {
 	refs: Refs;
 	send: ( event: IntentEvent ) => void;
-	machine: () => Machine;
+	openHref: () => string | null;
 	isOpen: () => boolean;
 	mode: () => Mode;
 	policyOptions: () => PolicyOptions;
