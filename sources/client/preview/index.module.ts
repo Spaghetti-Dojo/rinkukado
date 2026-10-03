@@ -59,6 +59,26 @@ function bindQueries(): void {
 	watchQueries( config().sheetQuery, config().hoverQuery, applyMode );
 }
 
+// An error that leaves `init` can stop the effects of other stores, so the
+// check reports the error and `init` returns.
+function checkServerData(): boolean {
+	try {
+		validateServerData( state );
+	} catch ( error ) {
+		reportError( error );
+
+		return false;
+	}
+
+	return true;
+}
+
+function findParts( region: HTMLElement ): void {
+	refs.dialog = region.querySelector< HTMLElement >( '.rinkukado__dialog' );
+	refs.closeButton =
+		region.querySelector< HTMLButtonElement >( '.rinkukado__close' );
+}
+
 const { state }: { state: ServerState } = store( STORE, {
 	state: {} as ServerState,
 
@@ -81,7 +101,9 @@ const { state }: { state: ServerState } = store( STORE, {
 
 	callbacks: {
 		init(): void {
-			validateServerData( state );
+			if ( ! checkServerData() ) {
+				return;
+			}
 
 			const region = getElement().ref as HTMLElement | null;
 
@@ -89,12 +111,7 @@ const { state }: { state: ServerState } = store( STORE, {
 				return;
 			}
 
-			refs.dialog =
-				region.querySelector< HTMLElement >( '.rinkukado__dialog' );
-			refs.closeButton =
-				region.querySelector< HTMLButtonElement >(
-					'.rinkukado__close'
-				);
+			findParts( region );
 
 			const root = resolveRoot( document, config().rootSelector );
 

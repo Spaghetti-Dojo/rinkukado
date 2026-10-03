@@ -59,7 +59,14 @@ beforeEach( () => {
 		matches: false,
 		addEventListener: jest.fn(),
 	} ) ) as unknown as typeof window.matchMedia;
+
+	// jsdom can lack `reportError`.
+	( window as unknown as { reportError: jest.Mock } ).reportError = jest.fn();
 } );
+
+function reported(): jest.Mock {
+	return ( window as unknown as { reportError: jest.Mock } ).reportError;
+}
 
 it( 'binds nothing when the config is not valid', async () => {
 	const endpoint = 'javascript:alert(1)';
@@ -68,7 +75,15 @@ it( 'binds nothing when the config is not valid', async () => {
 
 	expect( () => {
 		definition.callbacks.init();
-	} ).toThrow( 'the server config is not valid' );
+	} ).not.toThrow();
+	expect( reported() ).toHaveBeenCalledWith(
+		expect.objectContaining( {
+			message: expect.stringContaining(
+				'the server config is not valid'
+			),
+		} )
+	);
+	expect( reported().mock.calls[ 0 ][ 0 ] ).toBeInstanceOf( Error );
 	expect( window.matchMedia ).not.toHaveBeenCalled();
 	expect( listen ).not.toHaveBeenCalled();
 } );
@@ -79,10 +94,18 @@ it( 'binds nothing and keeps no config when the state is not valid', async () =>
 
 	expect( () => {
 		definition.callbacks.init();
-	} ).toThrow( 'the server state is not valid' );
+	} ).not.toThrow();
 	expect( () => {
 		definition.callbacks.init();
-	} ).toThrow( 'the server state is not valid' );
+	} ).not.toThrow();
+	expect( reported() ).toHaveBeenCalledTimes( 2 );
+
+	for ( const [ error ] of reported().mock.calls ) {
+		expect( error ).toBeInstanceOf( Error );
+		expect( ( error as Error ).message ).toContain(
+			'the server state is not valid'
+		);
+	}
 	expect( window.matchMedia ).not.toHaveBeenCalled();
 	expect( listen ).not.toHaveBeenCalled();
 } );
