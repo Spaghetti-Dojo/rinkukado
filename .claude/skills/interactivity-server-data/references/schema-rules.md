@@ -49,5 +49,5 @@ it( 'rejects a key that the server does not send', () => {
 ```
 
 A test of `init` sets invalid server data in the mock of
-`@wordpress/interactivity`, calls `init`, and makes sure that it throws and
-binds no listener.
+`@wordpress/interactivity`, calls `init`, and makes sure that it reports the
+error and binds no listener.

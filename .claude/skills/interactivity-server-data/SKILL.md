@@ -9,8 +9,10 @@ description: "Use when a store of the WordPress Interactivity API reads config, 
 
 A store validates every value that the server gives to it: the config, the
 state and the context. It does this in the `init` callback, before it binds
-anything. If a parse fails, `init` throws and the store does nothing. There
-are no fallback values, because a fallback hides a bug of the server.
+anything. If a parse fails, `init` reports the error with `reportError` and
+returns, so the store does nothing. The error does not leave `init`, because
+an error that leaves `init` can stop the effects of other stores on the page.
+There are no fallback values, because a fallback hides a bug of the server.
 
 ## Placeholders
 
@@ -112,9 +114,21 @@ const { state } = store( STORE, {
 	state: {} as State,
 	callbacks: {
 		init(): void {
-			validateServerData( state );
-			// The context belongs to each element, so each init checks it.
-			initializeServerContext( STORE, contextSchema, getContext< Context >() );
+			// An error that leaves init can stop the effects of other
+			// stores, so init reports the error and returns.
+			try {
+				validateServerData( state );
+				// The context belongs to each element, so each init checks it.
+				initializeServerContext(
+					STORE,
+					contextSchema,
+					getContext< Context >()
+				);
+			} catch ( error ) {
+				reportError( error );
+
+				return;
+			}
 
 			// Bind the listeners here, after the checks.
 		},
@@ -143,6 +157,8 @@ Read `references/schema-rules.md`, section "Tests".
   changes only the variable `c`.
 - Import `z` only from `<helpers-dir>/zod.ts`. Only that file loads the
   English locale. Without it, every error says only "Invalid input".
+- Do not let the error leave `init`. Catch it, call `reportError( error )`
+  and return. The helpers still throw, and only `init` catches.
 - Do not read the config before `init`. `config()` throws in that case.
 - `Readonly` on the config is a check at compile time only.
 - Do not use `.default()` or `.catch()` on a schema of server data.

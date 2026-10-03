@@ -21,7 +21,7 @@ store, so the same skill can go to other plugins later.
 | --- | --- |
 | Data in scope | Config, state and context. |
 | When | One time, in the `init` callback, before the store binds anything. |
-| Failure | `init` throws an `Error`. It binds no listener, and the preview does not appear. |
+| Failure | `init` catches the `Error`, reports it with `reportError` and returns. It binds no listener, and the preview does not appear. The error does not leave `init`, because an error that leaves `init` can stop the effects of other stores. |
 | Defaults | None. No `.catch()` and no `.default()`, because they hide server bugs. |
 | Zod entry point | `zod/mini`, because of the bundle size (see 2.1). |
 | Error messages | The English locale, loaded one time with a static import. |
@@ -69,6 +69,12 @@ the first read can happen in a listener after the binding.
 
 `init` holds all the checks, so there is one failure path: if a parse fails,
 the store does nothing.
+
+`init` runs inside a Preact effect (`data-wp-init`), and the runtime has no
+error boundary. An error that leaves `init` can stop the effect queue of
+other stores on the page. So `init` catches the error, reports it with the
+global `reportError( error )` and returns. `sanitize` and the helpers still
+throw. Only `init` of the store catches.
 
 ### 2.3 Why the proxy is an argument
 
@@ -206,22 +212,23 @@ context, so it has no context schema.
 
 `driver.ts`, `intent.ts` and the tests keep their imports and do not change.
 
-### 4.3 `sources/client/preview/index.module.ts`
+### 4.3 `server.ts` and `index.module.ts`
+
+`STORE`, `serverConfig`, `config()` and `validateServerData()` live in
+`sources/client/preview/server.ts`. `index.module.ts` imports them.
+
+In `server.ts`:
 
 - A constant `STORE = 'rinkukado'` replaces the string literal.
-- The local `State` type is removed and the code uses `ServerState`, because
-  the schema holds every key of the state.
 - `let serverConfig: ServerConfig | null = null;` caches the config.
 - `config()` returns `serverConfig`. If `serverConfig` is `null`, it throws,
   so no code can read config that was not validated.
 - The first `init` only checks the config and the state, because a later
   `init` must not reset the state of an open popover. A function
-  `validateServerData( state )` in `server.ts` does this. It returns at once
-  if `serverConfig` is not `null`.
+  `validateServerData( state )` does this. It returns at once if
+  `serverConfig` is not `null`.
 - `validateServerData` caches the config last, so a failed state check
   repeats at the next `init`.
-- `init` calls `validateServerData( state )`. After it, the binding code runs
-  without a change.
 
 ```ts
 const parsed = initializeServerConfig( STORE, configSchema );
@@ -230,7 +237,17 @@ initializeServerState( STORE, stateSchema, state );
 serverConfig = parsed;
 ```
 
-`config()` also lives in `server.ts`.
+In `index.module.ts`:
+
+- The local `State` type is removed and the code uses `ServerState`, because
+  the schema holds every key of the state.
+- A function `checkServerData(): boolean` calls `validateServerData( state )`
+  in a `try` block. If it throws, the function calls `reportError( error )`
+  and returns `false`. Otherwise it returns `true`.
+- `init` calls `checkServerData()` first. If the result is `false`, `init`
+  returns and binds nothing. Otherwise the binding code runs without a change.
+- The reason: an error that leaves `init` can stop the effects of other
+  stores (see 2.2).
 
 ### 4.4 `package.json`
 
@@ -275,8 +292,9 @@ you add or change a Zod schema for that data."
    directory. If the location is not clear, ask the user.
 2. **Add the dependency.** If `package.json` has no `zod`, add it.
 3. **The rule.** The store validates all server data one time in `init`,
-   before it binds anything. If a parse fails, `init` throws, and the store
-   does nothing.
+   before it binds anything. If a parse fails, `init` reports the error with
+   `reportError` and returns, so the store does nothing and the error does not
+   leave `init`.
 4. **The files of each store.** `schemas.ts` holds the schemas. The types come
    from them with `z.infer`.
 5. **Imports.** Import `z` from `<helpers-dir>/zod.ts` only.
@@ -293,6 +311,8 @@ you add or change a Zod schema for that data."
 - Pitfalls:
   - A reassignment of a local variable does not change a proxy.
   - `Readonly` is a check at compile time only.
+  - Do not let the error leave `init`. Catch it, call `reportError` and
+    return.
   - Do not read the config before `init`.
   - Do not use `.catch()` or `.default()`.
 - Test templates for a schema and for the helpers.
