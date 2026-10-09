@@ -18,6 +18,14 @@
 - `tests/e2e/specs/` — Playwright specs.
 - `build/` — generated. Never edit it by hand.
 
+## Module Documents
+
+Read the document of a module before you change that module.
+
+- `sources/client/preview/` → `docs/modules/client/preview.md`
+- `sources/server/Popover/` → `docs/modules/server/popover.md`
+- `sources/server/Rest/` → `docs/modules/server/rest.md`
+
 ## Quality Assurance
 
 Run `composer qa` for PHP. Run `pnpm lint:scripts` and `pnpm lint:styles` for the client side.
