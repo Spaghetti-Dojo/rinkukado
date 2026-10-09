@@ -16,7 +16,7 @@ Use this skill when the user mentions:
 
 ## Inputs required
 
-- Which block under `sources/client/blocks/` is affected.
+- Which store under `sources/client/` is affected.
 - Any constraints: WP version, whether modules are supported in the build.
 
 ## Procedure
@@ -35,14 +35,12 @@ Decide:
 - Is this theme-level interactivity?
 - Is this plugin-side “enhance existing markup” usage?
 
-If you are creating a new interactive block, follow the layout of this
-project. Do not scaffold with `@wordpress/create-block`.
+This project has no blocks. Its store enhances markup that the plugin
+prints in the footer. Do not scaffold with `@wordpress/create-block`.
 
-- Create one directory under `sources/client/blocks/`.
-- Put the store in `view.ts` and reference it as `viewScriptModule` in
-  `block.json`.
-- See the skill `wp-block-development`, file
-  `references/creating-new-blocks.md`.
+- Put a new store in its own directory under `sources/client/`, with an
+  `index.module.ts` entry point.
+- Register the script module in PHP with `wp_register_script_module()`.
 
 ### 2) Identify the store(s)
 

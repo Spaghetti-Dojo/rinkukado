@@ -1,15 +1,14 @@
 # Rinkukado Project Directives
 
-## Plans and Open Spec Implementation Flow Constraints
+## Plans and Specs Implementation Flow Constraints
 
 1. When executing a plan or implementing tasks of a spec, always stop at each step / task and ask for confirmation before proceeding to the next one.
 
 ## Project Layout
 
 - `sources/server/` — PHP, namespace `SpaghettiDojo\Rinkukado`, one directory per module.
-- `sources/client/blocks/` — one directory per block. It holds every file of the block: `block.json`, `render.php`, `view.ts` and `style.scss`.
+- `sources/client/preview/` — the client of the popover: the `rinkukado` store of the Interactivity API and its modules.
 - `sources/client/interactivity/` — the shared helpers of the Interactivity API stores. They are a copy of `.claude/skills/interactivity-server-data/assets/`: change the skill first.
-- `sources/server/Blocks/` — the block module and the registrar. Not specific to one block.
 - `tests/` — four layers. Read `docs/testing.md` before you write a test.
   - `tests/unit/server/` — Pest on Brain Monkey. No WordPress.
   - `tests/integration/server/` — Pest on a real WordPress. `tests/bootstrap-integration.php` installs it.
