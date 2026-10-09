@@ -1,4 +1,4 @@
-# Client Preview
+# Preview
 
 The client preview shows a popover, or a sheet, with the preview of a link.
 The code lives in `sources/client/preview/`. This document describes each
@@ -29,7 +29,9 @@ The preview has three modes. `media-queries.ts` reads the mode from the
 | `dom.ts` | DOM helpers: root, previewable link, mode, dialog placement. | yes | yes |
 | `position.ts` | Computes the side and the position of the popover. | no | no |
 | `media-queries.ts` | Reports the mode at the start and at each change. | no | listeners |
-| `types.ts` | The shared types. | no | no |
+| `schemas.ts` | The Zod schemas of the config and the state from the server. | no | no |
+| `server.ts` | Checks the server data one time, and gives the checked config. | no | no |
+| `types.ts` | The shared types. The server types come from the schemas. | no | no |
 | `style.scss` | The popover, the sheet and the custom properties. | — | — |
 
 The pure modules (`intent.ts`, `policy.ts`, `position.ts`) have no DOM and no
@@ -38,7 +40,8 @@ timer. Jest tests them in `tests/unit/client/`.
 ## Dependencies
 
 An arrow points from a module to the module that it imports. The diagram
-leaves out `types.ts`, because it holds only types.
+leaves out `types.ts`, because it holds only types. `server-data.ts` belongs
+to the shared helpers. See [Interactivity](interactivity.md).
 
 ```mermaid
 flowchart TD
@@ -52,7 +55,13 @@ flowchart TD
     dom["dom.ts"]
     policy["policy.ts"]
     position["position.ts"]
+    server["server.ts<br/>checked config"]
+    schemas["schemas.ts"]
+    helpers["server-data.ts<br/>shared helpers"]
 
+    index --> server
+    server --> schemas
+    server --> helpers
     index --> events
     index --> driver
     index --> network
@@ -66,6 +75,32 @@ flowchart TD
     dom --> policy
     dom --> position
 ```
+
+## Server data
+
+The server gives a config and a state to the store. The PHP side of this
+data is in [Popover](../server/popover.md).
+
+`schemas.ts` holds one strict schema for the config and one for the state.
+Each schema holds exactly the keys that the server sends. `types.ts` takes
+`ServerConfig`, `ServerState` and `Timings` from the schemas.
+
+The first `init` calls `validateServerData()` of `server.ts`, before it
+binds a listener or a media query:
+
+1. It parses the config.
+2. It parses the state, and writes the result into the state of the store.
+3. It caches the config. `config()` then gives the cached config to the
+   other modules.
+
+If a parse fails, `init` reports the error with `reportError`, and returns.
+The store binds nothing, so the links keep their normal behavior. The
+console shows which key is wrong.
+
+A later `init` does not parse again. A second parse would reset the state of
+an open popover to the values of the server.
+
+`config()` throws if a module calls it before the check.
 
 ## Data flow
 
@@ -196,3 +231,4 @@ sequenceDiagram
   keeps its normal behavior.
 - The configuration (`ServerConfig`) does not change while the page is open.
   It stays out of the state.
+- The store uses no server data before the check of `server.ts` passes.

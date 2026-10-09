@@ -19,30 +19,10 @@ and a third party can add its own module to the package of the plugin.
 add_filter('rinkukado.popover.root-selector', static fn (): string => '.site-content');
 ```
 
-### Where the popover prints
+Each module document describes its filters:
 
-The popover prints only on a singular view, and only for a link inside the
-element that `rinkukado.popover.container-selector` names. The default keeps
-the popover on the links of the prose, and leaves the date, the author and the
-navigation alone.
-
-To exclude one link, add the class of `rinkukado.popover.deny-class` to it:
-
-```html
-<a href="/about/" class="no-rinkukado">About</a>
-```
-
-### Post types
-
-The default list of post types excludes `attachment`, so a media page shows
-no preview. Add `attachment` back through `rinkukado.rest.post-types` when a
-site wants a preview for its media pages.
-
-### Payload
-
-`rinkukado.rest.payload` receives the payload array and the `WP_Post` object,
-just before the endpoint sends the response. See [REST API](rest-api.md) for
-the shape of the payload.
+- [Popover](modules/server/popover.md) for `rinkukado.popover.*`.
+- [REST](modules/server/rest.md) for `rinkukado.rest.*`.
 
 ## Extend the plugin
 

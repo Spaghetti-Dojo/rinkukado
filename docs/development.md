@@ -65,6 +65,7 @@ sources/server/            PHP. One directory per module.
 sources/server/Popover/    Registers the script module and its config.
 sources/server/Rest/       The preview endpoint and its middlewares.
 sources/client/preview/    The client of the popover.
+sources/client/interactivity/  Shared helpers of the Interactivity API stores.
 sources/client/styles/     Shared SCSS.
 tests/unit/server/         PHP unit tests. Brain Monkey. No WordPress.
 tests/unit/client/         Client unit tests. Jest.
@@ -74,4 +75,9 @@ tests/bootstrap-integration.php  Installs WordPress for the integration tests.
 build/                     Generated. Never edit it by hand.
 ```
 
-The client preview has its own document: [Client preview](client-preview.md).
+Each module has its own document in `docs/modules/`:
+
+- [Preview](modules/client/preview.md)
+- [Interactivity](modules/client/interactivity.md)
+- [Popover](modules/server/popover.md)
+- [REST](modules/server/rest.md)

@@ -1,6 +1,7 @@
-# REST API
+# REST
 
-The client gets the content of each preview from one endpoint.
+The client gets the content of each preview from one endpoint. The code
+lives in `sources/server/Rest/`.
 
 ## Request
 
@@ -33,7 +34,7 @@ The endpoint answers `200` with `id`, `title`, `excerpt`, `permalink` and
 ```
 
 The `rinkukado.rest.payload` filter can change the payload. See
-[Customize](customize.md).
+[Filters](#filters).
 
 ## Errors
 
@@ -48,4 +49,23 @@ says which check failed.
 | from a logged-in user | `Cache-Control: no-store` |
 
 The client also caches each settled result for the page session. See
-[Client preview](client-preview.md).
+[Preview](../client/preview.md).
+
+## Filters
+
+| Filter | Default | Purpose |
+| --- | --- | --- |
+| `rinkukado.rest.post-types` | every public type except `attachment` | The types that the endpoint accepts. |
+| `rinkukado.rest.excerpt-length` | `30` | The word count of the fallback excerpt. |
+| `rinkukado.rest.payload` | the payload | The last change before the response. |
+
+### Post types
+
+The default list of post types excludes `attachment`, so a media page shows
+no preview. Add `attachment` back through `rinkukado.rest.post-types` when a
+site wants a preview for its media pages.
+
+### Payload
+
+`rinkukado.rest.payload` receives the payload array and the `WP_Post` object,
+just before the endpoint sends the response.
