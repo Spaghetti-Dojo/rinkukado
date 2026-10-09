@@ -26,6 +26,12 @@ Read the document of a module before you change that module.
 - `sources/server/Popover/` → `docs/modules/server/popover.md`
 - `sources/server/Rest/` → `docs/modules/server/rest.md`
 
+Keep the documents in sync with the code, in the same commit:
+
+- If you change the behavior, the server data or a filter of a module, update its document.
+- If you add a module, add `docs/modules/<client|server>/<name>.md`, and add its row to the table in `README.md`. `sources/client/styles/` is not a module and needs no document.
+- Add a module to the list above only if its document holds rules that the code does not show.
+
 ## Quality Assurance
 
 Run `composer qa` for PHP. Run `pnpm lint:scripts` and `pnpm lint:styles` for the client side.
