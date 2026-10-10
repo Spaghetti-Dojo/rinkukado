@@ -15,7 +15,7 @@ Route by the intent of the request.
   - Route → `wp-rest-api`.
 - **Build tooling / @wordpress/scripts / pnpm scripts / wp-env / Playwright**
   - Read `docs/development.md` and `docs/testing.md`. No skill covers this route.
-- **PHPStan / static analysis / phpstan.neon / phpstan-baseline.neon**
+- **PHPStan / static analysis / phpstan.neon**
   - Route → `wp-phpstan`.
 - **Performance / caching / query profiling / editor slowness**
   - Route → `wp-performance`.

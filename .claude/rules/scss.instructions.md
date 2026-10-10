@@ -9,19 +9,12 @@ paths:
 
 ## Scss Conventions
 
-- Use `mixins.units.rem` or `mixins.units.em` rather than `px` for font sizes, spacing, and other properties that should scale with the user's settings.
+- Use `units.rem()` or `units.em()` from `sources/client/styles/mixins/_units.scss` rather than `px` for font sizes, spacing, and other properties that should scale with the user's settings.
 
 ## Organization
 
-SCSS is organized atomically:
-
-- `atoms/` — basic elements (buttons, inputs, typography)
-- `molecules/` — component combinations
-- `organisms/` — complex compositions
-- `templates/` - page layouts
-- `pages/` - specific page styles
-- `block-styles/` — block-specific overrides
-- `mixins/` — reusable SCSS mixins
+- `sources/client/styles/mixins/` — reusable SCSS mixins and functions, shared by all modules.
+- `sources/client/<module>/style.scss` — the styles of one module, next to its code. It is a build entry point, so its name has no underscore.
 
 ## Coding Style
 
@@ -35,7 +28,7 @@ SCSS is organized atomically:
 
 ## Files
 
-- SCSS files start with `_` (underscore) unless them are named `index.scss`.
+- SCSS files start with `_` (underscore) unless they are named `index.scss` or `style.scss`.
 - Each style directory can contain only one `index.scss` file.
 - Each directory is a package, and the `index.scss` file is the public API of that package.
 - Use `@forward` in `index.scss` to re-export the styles from the other files in the directory. Do not use `@import` in any file.

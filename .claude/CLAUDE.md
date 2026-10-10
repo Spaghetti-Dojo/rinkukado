@@ -14,7 +14,6 @@
   - `tests/integration/server/` — Pest on a real WordPress. `tests/bootstrap-integration.php` installs it.
   - `tests/unit/client/` — Jest. Files end with `.test.ts`.
   - `tests/e2e/specs/` — Playwright. Files end with `.spec.ts`.
-- `tests/e2e/specs/` — Playwright specs.
 - `build/` — generated. Never edit it by hand.
 
 ## Module Documents

@@ -27,7 +27,7 @@ Use this skill at the start of most WordPress tasks to:
    - `sources/client/interactivity/` — the shared helpers of the stores.
    - `tests/unit/`, `tests/integration/`, `tests/e2e/`.
 2. Route by intent. Read:
-   - `skills/wordpress-router/references/decision-tree.md`
+   - `references/decision-tree.md`
 3. Apply the guardrails of the decision tree before you change anything.
 
 ## Verification

@@ -21,7 +21,7 @@ sources/server/
 ```
 
 **Guidelines:**
-- One module per feature domain (e.g., `BlockStyles`, `Theme`, `CustomPostTypes`)
+- One module per feature domain (e.g., `Popover`, `Rest`)
 - Each module contains one `Module.php` entry point
 - Feature logic is separated into dedicated classes
 
@@ -42,16 +42,16 @@ use Inpsyde\Modularity\Module\ExecutableModule;
 use Inpsyde\Modularity\Module\ModuleClassNameIdTrait;
 use Psr\Container\ContainerInterface;
 
-class Module implements ExecutableModule
+final class Module implements ExecutableModule
 {
     use ModuleClassNameIdTrait;
 
-    public static function new(): Module
+    public static function new(): self
     {
         return new self();
     }
 
-    final private function __construct()
+    private function __construct()
     {
     }
 
@@ -81,9 +81,11 @@ class Module implements ExecutableModule
 - Defining singleton instances to be consumed by other modules
 - Building reusable components that require container registration
 
+`Rest/Module.php` is the existing example: it implements both `ServiceModule` and `ExecutableModule`.
+
 ```php
 // Only create this pattern when explicitly requested
-class Module implements ServiceModule
+final class Module implements ServiceModule
 {
     use ModuleClassNameIdTrait;
 
@@ -165,7 +167,7 @@ final readonly class FeatureClass
 - Asset enqueueing? Add constants for handles
 - Complex data structures? Add PHPStan type annotations
 - Multiple operations? Add multiple private methods
-- Simple modification? Keep it minimal like `ThemeJson`
+- Simple modification? Keep it minimal like `Popover\ScriptModules`
 
 ## WordPress Integration Patterns
 
@@ -206,9 +208,9 @@ private function enqueue_assets(): void
 {
     wp_enqueue_style(
         self::STYLE_HANDLE,
-        get_theme_file_uri('dist/styles/feature.css'),
+        plugins_url('build/feature/style-index.css', $this->pluginFile()),
         [],
-        wp_get_theme()->get('Version')
+        $this->asset()['version']
     );
 }
 ```
@@ -241,9 +243,9 @@ final readonly class BlockStyles
 
 | Element | Convention | Example |
 |---------|-----------|---------|
-| **Package namespace** | `SpaghettiDojo\ProjectName\FeatureName` | `SpaghettiDojo\ProjectName\BlockStyles` |
-| **Module class** | `Module` | `BlockStyles\Module` |
-| **Feature class** | Descriptive noun | `Button`, `ThemeJson`, `CustomPostType` |
+| **Package namespace** | `SpaghettiDojo\Rinkukado\FeatureName` | `SpaghettiDojo\Rinkukado\Popover` |
+| **Module class** | `Module` | `Popover\Module` |
+| **Feature class** | Descriptive noun | `PopoverRegion`, `ScriptModules` |
 | **Factory method** | `new()` | `public static function new()` |
 | **Hook registration** | `init()` | `public function init(): void` |
 | **Constants** | `SCREAMING_SNAKE_CASE` | `BLOCK_STYLES_HANDLE` |

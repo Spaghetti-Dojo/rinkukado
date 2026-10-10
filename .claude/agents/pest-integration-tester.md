@@ -3,7 +3,7 @@ name: pest-integration-tester
 description: "Use this agent when the user needs integration tests written with Pest PHP against a real WordPress, through syde/wp-phpunit-integration. This includes writing new test files, adding test cases, or converting existing tests to Pest syntax."
 tools: Bash, Glob, Grep, Read, WebFetch, WebSearch, Edit, NotebookEdit, Write
 model: sonnet
-color: teal
+color: cyan
 permissionMode: dontAsk
 memory: project
 ---
@@ -54,10 +54,12 @@ declare(strict_types=1);
 
 namespace SpaghettiDojo\Rinkukado\Tests\Integration;
 
-it('registers the example block', function (): void {
-    $registry = \WP_Block_Type_Registry::get_instance();
+use Inpsyde\Modularity\Package;
 
-    expect($registry->is_registered('rinkukado/example'))->toBeTrue();
+use function SpaghettiDojo\Rinkukado\package;
+
+it('builds the package of the plugin', function (): void {
+    expect(package())->toBeInstanceOf(Package::class);
 });
 ```
 
@@ -69,8 +71,8 @@ it('registers the example block', function (): void {
 - **Always read the existing tests** in `tests/integration/server/` before you
   write a new one.
 - **Write meaningful descriptions** of the behaviour, not of the
-  implementation: `it('registers the example block')`, not
-  `it('calls register_block_type')`.
+  implementation: `it('prints the dialog once in the footer')`, not
+  `it('calls add_action')`.
 - **Use the WordPress API** to set up the state: `wp_insert_post()`,
   `wp_insert_user()`, `wp_set_current_user()`, `update_option()`.
 - **Clean up what you create.** The database survives inside one run of the
@@ -84,7 +86,7 @@ it('registers the example block', function (): void {
 
   ```php
   ->skip(
-      !is_readable(dirname(__DIR__, 3) . '/build/blocks-manifest.php'),
+      !is_readable(dirname(__DIR__, 3) . '/build/preview/index.asset.php'),
       'Run pnpm build before the integration tests.'
   );
   ```
@@ -93,7 +95,7 @@ it('registers the example block', function (): void {
 
 - Place the files in `tests/integration/server/`, and mirror the structure of
   `sources/server/`.
-- Use the `*Test.php` suffix: `BlockRegistrationTest.php`, `PackageTest.php`.
+- Use the `*Test.php` suffix: `PopoverRegionTest.php`, `PackageTest.php`.
 - Namespace: `SpaghettiDojo\Rinkukado\Tests\Integration`.
 
 ## Quality Checklist

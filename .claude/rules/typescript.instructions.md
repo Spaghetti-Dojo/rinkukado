@@ -19,8 +19,10 @@ function getBlockEntries(): Entries {
 }
 
 class Block {
+    private name: string;
+
     getTitle(): string {
-        return this.title;
+        return this.name;
     }
 }
 ```
@@ -32,8 +34,10 @@ function blockEntries(): Entries {
 }
 
 class Block {
+    private name: string;
+
     title(): string {
-        return this.title;
+        return this.name;
     }
 }
 ```
