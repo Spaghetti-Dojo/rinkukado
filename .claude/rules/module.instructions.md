@@ -179,9 +179,10 @@ final readonly class FeatureClass
 public function init(): void
 {
     // Use first-class callable syntax
-    add_action('init', $this->register_post_type(...));
-    add_filter('the_content', $this->modify_content(...), 10, 1);
-    add_action('wp_enqueue_scripts', $this->enqueue_assets(...), PHP_INT_MAX);
+    add_action('init', $this->register(...));
+    add_action('wp_enqueue_scripts', $this->enqueue(...));
+    // Add a priority only when the order matters
+    add_action('wp_footer', $this->render(...), PHP_INT_MAX);
 }
 ```
 
@@ -196,22 +197,25 @@ public function init(): void
 Private methods handle actual WordPress API interactions:
 
 ```php
-private function register_post_type(): void
+private function register(): void
 {
-    register_post_type('my_cpt', [
-        'public' => true,
-        'label' => __('My CPT', 'text-domain'),
-    ]);
+    $asset = $this->asset();
+
+    wp_register_script_module(
+        self::HANDLE,
+        plugins_url('build/preview/index.js', $this->pluginFile()),
+        $asset['dependencies'],
+        $asset['version']
+    );
 }
 
-private function enqueue_assets(): void
+private function enqueue(): void
 {
-    wp_enqueue_style(
-        self::STYLE_HANDLE,
-        plugins_url('build/feature/style-index.css', $this->pluginFile()),
-        [],
-        $this->asset()['version']
-    );
+    if (is_admin() || is_feed()) {
+        return;
+    }
+
+    wp_enqueue_script_module(self::HANDLE);
 }
 ```
 
@@ -220,21 +224,14 @@ private function enqueue_assets(): void
 Use PHPStan type annotations for complex array structures:
 
 ```php
-/**
- * @phpstan-type BlockStyle array{
- *   name: string,
- *   label: string,
- *   inline_style?: string
- * }
- */
-final readonly class BlockStyles
+final readonly class ScriptModules
 {
     /**
-     * @param list<BlockStyle> $styles
+     * @return array{dependencies: array<array<string, string>|string>, version: string}
      */
-    private function __construct(
-        private array $styles,
-    ) {
+    private function asset(): array
+    {
+        // ...
     }
 }
 ```
@@ -248,7 +245,7 @@ final readonly class BlockStyles
 | **Feature class** | Descriptive noun | `PopoverRegion`, `ScriptModules` |
 | **Factory method** | `new()` | `public static function new()` |
 | **Hook registration** | `init()` | `public function init(): void` |
-| **Constants** | `SCREAMING_SNAKE_CASE` | `BLOCK_STYLES_HANDLE` |
+| **Constants** | `SCREAMING_SNAKE_CASE` | `HANDLE` |
 
 ## Key Principles
 
