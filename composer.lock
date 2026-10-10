@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "835cf5cb111f776b3a564021373408a7",
+    "content-hash": "20f8e79de7b629a8b8f19a2b96907630",
     "packages": [
         {
             "name": "inpsyde/modularity",
@@ -1062,48 +1062,6 @@
                 "source": "https://github.com/hamcrest/hamcrest-php/tree/v3.0.0"
             },
             "time": "2026-03-17T11:56:53+00:00"
-        },
-        {
-            "name": "inpsyde/wp-stubs",
-            "version": "dev-main",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/inpsyde/wp-stubs.git",
-                "reference": "08733305df26dc3d04d3aec7a3f0c7e32605d4f7"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/inpsyde/wp-stubs/zipball/08733305df26dc3d04d3aec7a3f0c7e32605d4f7",
-                "reference": "08733305df26dc3d04d3aec7a3f0c7e32605d4f7",
-                "shasum": ""
-            },
-            "require-dev": {
-                "php": "^8",
-                "php-stubs/generator": "^v0.8.1",
-                "symfony/process": "^5"
-            },
-            "default-branch": true,
-            "type": "project",
-            "extra": {
-                "installer-disable": true
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Syde GmbH",
-                    "email": "hello@syde.com",
-                    "role": "company"
-                }
-            ],
-            "description": "WordPress Stubs",
-            "support": {
-                "issues": "https://github.com/inpsyde/wp-stubs/issues",
-                "source": "https://github.com/inpsyde/wp-stubs/tree/main"
-            },
-            "time": "2026-08-20T00:21:58+00:00"
         },
         {
             "name": "jean85/pretty-package-versions",
@@ -5963,9 +5921,7 @@
     ],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": {
-        "inpsyde/wp-stubs": 20
-    },
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

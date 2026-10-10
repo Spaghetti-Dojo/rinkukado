@@ -2,16 +2,8 @@ parameters:
 	level: 9
 	paths:
 		- sources
-	scanFiles:
-		- vendor/inpsyde/wp-stubs/stubs/latest.php
+	scanDirectories:
+		- vendor/wordpress/wordpress
 	treatPhpDocTypesAsCertain: false
-	ignoreErrors:
-		-
-			# inpsyde/wp-stubs defines WP_DEBUG as a literal false, so
-			# PHPStan treats a real WordPress site's WP_DEBUG as never true.
-			# A production site can still define it as true.
-			identifier: booleanAnd.rightAlwaysFalse
-			path: sources/server/Rest/Middlewares/ErrorCatch.php
-			count: 1
 includes:
 	- vendor/bnf/phpstan-psr-container/extension.neon
