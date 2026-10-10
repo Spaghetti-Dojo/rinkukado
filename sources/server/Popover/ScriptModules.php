@@ -39,7 +39,7 @@ final readonly class ScriptModules
 
         wp_register_style(
             self::HANDLE,
-            plugins_url('build/preview/style-index.css', $this->pluginFile()),
+            plugins_url('build/preview/index.css', $this->pluginFile()),
             [],
             $asset['version']
         );

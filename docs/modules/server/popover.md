@@ -30,7 +30,7 @@ the handle `rinkukado-preview`:
 | Asset | File |
 | --- | --- |
 | Script module | `build/preview/index.js` |
-| Style | `build/preview/style-index.css` |
+| Style | `build/preview/index.css` |
 
 The dependencies and the version come from `build/preview/index.asset.php`.
 The module loads both assets on `wp_enqueue_scripts`, but not in the admin

@@ -21,23 +21,24 @@ module.exports = {
 	optimization: {
 		...moduleConfig.optimization,
 		/**
-		 * Module concatenation breaks the production bundle of this entry.
+		 * Removes the `style` cache group of wp-scripts, so the CSS of
+		 * `style.scss` stays in the entry chunk.
 		 *
-		 * The `style` cache group of wp-scripts moves `style.scss` into a
-		 * second initial chunk. The entry chunk then depends on that chunk,
-		 * so webpack defers the start of the entry and renders the entry as
-		 * a module factory. That factory declares its exports with
-		 * `__webpack_require__.d`. With concatenation on, the entry is a
-		 * ConcatenatedModule, and `ModuleLibraryPlugin` stashes its exports
-		 * source, then removes `definePropertyGetters` from the runtime of
-		 * the chunk, because it assumes an inlined entry (webpack 5.110.3,
-		 * lib/library/ModuleLibraryPlugin.js). The helper disappears, the
-		 * call stays, and the browser throws "i.d is not a function".
+		 * That cache group moves the CSS into a second initial chunk. The
+		 * entry chunk then depends on that chunk, and webpack renders the
+		 * entry as a module factory. With module concatenation on,
+		 * `ModuleLibraryPlugin` removes `definePropertyGetters` from the
+		 * runtime of that factory (webpack 5.110.3,
+		 * lib/library/ModuleLibraryPlugin.js), and the browser throws
+		 * "i.d is not a function".
 		 *
-		 * Without concatenation the entry keeps a plain module source that
-		 * names `__webpack_require__.`, which the same guard detects, so
-		 * webpack keeps the helper. The bundle grows by about one kilobyte.
+		 * With one chunk, webpack inlines the entry and adds no runtime. The
+		 * CSS file takes the name of the entry: `preview/index.css`.
 		 */
-		concatenateModules: false,
+		splitChunks: {
+			cacheGroups: {
+				default: false,
+			},
+		},
 	},
 };
