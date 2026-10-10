@@ -2,12 +2,6 @@
 name: pest-integration-tester
 description: "Use this agent when the user needs integration tests written with Pest PHP against a real WordPress, through syde/wp-phpunit-integration. This includes writing new test files, adding test cases, or converting existing tests to Pest syntax."
 tools: Bash, Glob, Grep, Read, WebFetch, WebSearch, Edit, Write
-hooks:
-  PreToolUse:
-    - matcher: "Edit|Write"
-      hooks:
-        - type: command
-          command: 'bash "$CLAUDE_PROJECT_DIR/.claude/hooks/limit-writes.sh" tests/integration/server'
 model: sonnet
 color: cyan
 permissionMode: dontAsk
