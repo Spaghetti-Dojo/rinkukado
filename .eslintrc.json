@@ -120,5 +120,13 @@
 				"allowedTextDomain": "rinkukado"
 			}
 		]
-	}
+	},
+	"overrides": [
+		{
+			"files": ["tests/**/*.ts"],
+			"rules": {
+				"@typescript-eslint/prefer-readonly-parameter-types": "off"
+			}
+		}
+	]
 }
