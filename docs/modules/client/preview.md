@@ -67,6 +67,7 @@ flowchart TD
     index --> network
     index --> mq
     index --> dom
+    index --> policy
     events --> context
     events --> dom
     context --> dom
@@ -216,6 +217,23 @@ sequenceDiagram
     Driver->>Store: effects.close
     Store->>Store: isOpen = false, unplaceDialog
 ```
+
+## Permalink structures
+
+The preview works with pretty permalinks and with plain permalinks. No module
+detects the structure. Each rule holds for both:
+
+- `requestURL()` of `network.ts` adds the `url` parameter through
+  `URLSearchParams`. The endpoint of a site with plain permalinks already
+  holds a query: `index.php?rest_route=/rinkukado/v1/preview`.
+- `isPreviewable()` of `policy.ts` compares the path and the query of a link
+  with the home page and with the current page. A site with plain permalinks
+  identifies a page by its query (`/?p=5`), so the path is always `/`.
+- `homePathOf()` of `policy.ts` reads the home path from the endpoint. It
+  removes `wp-json/...` or `index.php` from the end of the path.
+
+A link to the current page with a different query counts as a different
+page.
 
 ## Rules of the design
 

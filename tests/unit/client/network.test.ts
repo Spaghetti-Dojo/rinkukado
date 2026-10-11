@@ -1,4 +1,7 @@
-import { createFetcher } from '../../../sources/client/preview/network';
+import {
+	createFetcher,
+	requestURL,
+} from '../../../sources/client/preview/network';
 
 import type { Endpoint } from '../../../sources/client/preview/network';
 
@@ -123,5 +126,30 @@ describe( 'createFetcher', () => {
 		expect( await first ).toBe( 'unavailable' );
 		expect( await fetcher.load( FIRST, ENDPOINT ) ).toBe( 'unavailable' );
 		expect( double.calls() ).toBe( 1 );
+	} );
+} );
+
+describe( 'requestURL', () => {
+	it( 'adds the href to an endpoint without a query', () => {
+		expect( requestURL( FIRST, ENDPOINT.url ) ).toBe(
+			'https://example.com/wp-json/rinkukado/v1/preview?url=https%3A%2F%2Fexample.com%2Fpost%2Fone%2F'
+		);
+	} );
+
+	// A site with plain links gives an endpoint that already holds a query.
+	it( 'keeps the query of the endpoint', () => {
+		const url = new URL(
+			requestURL(
+				'https://example.com/?p=5',
+				'https://example.com/index.php?rest_route=/rinkukado/v1/preview'
+			)
+		);
+
+		expect( url.searchParams.get( 'rest_route' ) ).toBe(
+			'/rinkukado/v1/preview'
+		);
+		expect( url.searchParams.get( 'url' ) ).toBe(
+			'https://example.com/?p=5'
+		);
 	} );
 } );

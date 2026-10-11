@@ -11,6 +11,7 @@ import { createDriver } from './driver';
 import { placeDialog, resolveRoot, unplaceDialog } from './dom';
 import { watchQueries } from './media-queries';
 import { createFetcher, readPreview } from './network';
+import { homePathOf } from './policy';
 import { config, STORE, validateServerData } from './server';
 
 import type { EventContext, Refs } from './context';
@@ -132,11 +133,8 @@ let options: PolicyOptions | null = null;
 function policyOptions(): PolicyOptions {
 	options ??= {
 		siteOrigin: window.location.origin,
-		homePath: new URL( config().endpoint ).pathname.replace(
-			/wp-json.*$/,
-			''
-		),
-		currentPath: window.location.pathname,
+		homePath: homePathOf( config().endpoint ),
+		currentPath: window.location.pathname + window.location.search,
 		denyClass: config().denyClass,
 		containerSelector: config().containerSelector,
 	};

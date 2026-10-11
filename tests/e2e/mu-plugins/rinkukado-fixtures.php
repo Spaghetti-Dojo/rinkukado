@@ -8,6 +8,22 @@ declare(strict_types=1);
  */
 
 /**
+ * A request that carries this cookie sees a site with plain permalinks. The
+ * site keeps one stored structure, so a spec can test both structures and
+ * changes no state that another spec reads.
+ */
+const RINKUKADO_PLAIN_COOKIE = 'rinkukado_plain_permalinks';
+
+function rinkukado_plain_requested(): bool
+{
+    return isset($_COOKIE[RINKUKADO_PLAIN_COOKIE]);
+}
+
+if (rinkukado_plain_requested()) {
+    add_filter('pre_option_permalink_structure', '__return_empty_string');
+}
+
+/**
  * The tests ask for /rinkukado-links/, so the site needs pretty permalinks.
  * A fresh wp-env site starts with the plain structure. Set the structure once,
  * on the first request after the install, so the fixtures get pretty links.
@@ -18,6 +34,11 @@ declare(strict_types=1);
  */
 add_action('init', static function (): void {
     $structure = '/%postname%/';
+
+    // The filter above hides the stored structure. Do not write it again.
+    if (rinkukado_plain_requested()) {
+        return;
+    }
 
     if (get_option('permalink_structure') === $structure) {
         return;
@@ -34,7 +55,7 @@ add_action('init', static function (): void {
  * The version of the content below. Raise it after every change of the
  * fixtures, so an existing site takes the new content on the next request.
  */
-const RINKUKADO_FIXTURES_VERSION = '2';
+const RINKUKADO_FIXTURES_VERSION = '3';
 
 /**
  * Inserts the post, or updates it when a post of the same slug and the same
@@ -59,6 +80,11 @@ function rinkukado_fixture_post(array $data): int
 }
 
 add_action('init', static function (): void {
+    // The fixtures below need the pretty links of the stored structure.
+    if (rinkukado_plain_requested()) {
+        return;
+    }
+
     if (get_option('rinkukado_fixtures_version') === RINKUKADO_FIXTURES_VERSION) {
         return;
     }
@@ -146,6 +172,31 @@ add_action('init', static function (): void {
         'post_name' => 'rinkukado-links',
         'post_title' => 'Rinkukado links',
         'post_content' => $content,
+    ]);
+
+    // The page for a site with plain permalinks. WordPress gives pretty
+    // links here, because the stored structure is pretty, so the page builds
+    // the plain links itself. The page needs its ID for the link to itself.
+    $plainPage = rinkukado_fixture_post([
+        'post_type' => 'page',
+        'post_status' => 'publish',
+        'post_name' => 'rinkukado-plain-links',
+        'post_title' => 'Rinkukado plain links',
+    ]);
+
+    rinkukado_fixture_post([
+        'post_type' => 'page',
+        'post_status' => 'publish',
+        'post_name' => 'rinkukado-plain-links',
+        'post_title' => 'Rinkukado plain links',
+        'post_content' => sprintf(
+            '<p>'
+            . '<a id="link-thumb" href="%1$s">With thumbnail</a> '
+            . '<a id="link-self" href="%2$s">This page</a>'
+            . '</p>',
+            esc_url(add_query_arg('p', $withThumbnail, home_url('/'))),
+            esc_url(add_query_arg('page_id', $plainPage, home_url('/')))
+        ),
     ]);
 
     update_option('rinkukado_fixtures_version', RINKUKADO_FIXTURES_VERSION);

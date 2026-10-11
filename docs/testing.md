@@ -246,6 +246,16 @@ The `afterStart` script of `.wp-env.json` runs
 writes the `.htaccess` file. Without that file, Apache answers `404` for each
 pretty link and for `/wp-json/`. No manual setup step runs before the suite.
 
+### Plain permalinks
+
+The test site stores pretty permalinks. A request that carries the cookie
+`rinkukado_plain_permalinks` sees plain permalinks instead: the fixtures
+filter the `permalink_structure` option for that request only. The stored
+structure does not change, so the other specs are not affected.
+
+`tests/e2e/specs/permalinks.spec.ts` sets the cookie and opens
+`/?pagename=rinkukado-plain-links`. That page holds plain links (`/?p=<id>`).
+
 ### Artifacts
 
 A failed test writes a trace, a screenshot and a video into `artifacts/`. The

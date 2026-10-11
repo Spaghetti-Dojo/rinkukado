@@ -14,6 +14,11 @@ export type LinkFacts = {
 	classes: ReadonlyArray< string >;
 };
 
+/**
+ * `homePath` and `currentPath` hold the path and the query of a page. A site
+ * with plain links identifies a page by its query (`/?p=5`), so the path
+ * alone cannot tell two pages apart.
+ */
 export type PolicyOptions = {
 	siteOrigin: string;
 	homePath: string;
@@ -23,6 +28,18 @@ export type PolicyOptions = {
 };
 
 const FILE_EXTENSION = /\.[a-z0-9]{2,5}$/i;
+
+// The end of the path of the REST endpoint. A site with pretty links gives
+// `wp-json/...`, and a site with plain links gives `index.php`.
+const ENDPOINT_PATH = /(?:wp-json.*|index\.php)$/;
+
+/**
+ * Reads the path of the home page from the URL of the REST endpoint.
+ * @param endpoint - The URL of the REST endpoint.
+ */
+export function homePathOf( endpoint: string ): string {
+	return new URL( endpoint ).pathname.replace( ENDPOINT_PATH, '' );
+}
 
 function parseURL( href: string ): URL | null {
 	try {
@@ -47,11 +64,13 @@ function isHTTPProtocol( url: URL ): boolean {
 	return url.protocol === 'http:' || url.protocol === 'https:';
 }
 
-function isValidPath( pathname: string, options: PolicyOptions ): boolean {
+function isValidPath( url: URL, options: PolicyOptions ): boolean {
+	const page = url.pathname + url.search;
+
 	return (
-		pathname !== options.homePath &&
-		pathname !== options.currentPath &&
-		! FILE_EXTENSION.test( pathname )
+		page !== options.homePath &&
+		page !== options.currentPath &&
+		! FILE_EXTENSION.test( url.pathname )
 	);
 }
 
@@ -59,7 +78,7 @@ function validateURLProperties( url: URL, options: PolicyOptions ): boolean {
 	return (
 		isHTTPProtocol( url ) &&
 		url.origin === options.siteOrigin &&
-		isValidPath( url.pathname, options )
+		isValidPath( url, options )
 	);
 }
 

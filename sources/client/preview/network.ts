@@ -57,19 +57,31 @@ function headersOf( nonce: string ): Record< string, string > {
 	return headers;
 }
 
+/**
+ * Builds the URL of a preview request. The endpoint of a site with plain
+ * links already holds a query (`index.php?rest_route=...`), so the href
+ * joins that query instead of starting a new one.
+ * @param href     - The link that the preview is for.
+ * @param endpoint - The URL of the REST endpoint.
+ */
+export function requestURL( href: string, endpoint: string ): string {
+	const url = new URL( endpoint );
+
+	url.searchParams.set( 'url', href );
+
+	return url.toString();
+}
+
 async function requestPreview(
 	href: string,
 	endpoint: Endpoint,
 	signal: AbortSignal
 ): Promise< Preview | 'unavailable' > {
-	const response = await window.fetch(
-		`${ endpoint.url }?url=${ encodeURIComponent( href ) }`,
-		{
-			headers: headersOf( endpoint.nonce ),
-			credentials: 'same-origin',
-			signal,
-		}
-	);
+	const response = await window.fetch( requestURL( href, endpoint.url ), {
+		headers: headersOf( endpoint.nonce ),
+		credentials: 'same-origin',
+		signal,
+	} );
 
 	if ( ! response.ok ) {
 		return 'unavailable';
