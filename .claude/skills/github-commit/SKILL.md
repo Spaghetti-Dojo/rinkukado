@@ -45,7 +45,7 @@ This project follows [Conventional Commits 1.0.0](https://www.conventionalcommit
 | `chore` | changes something else: `.gitignore`, the repository setup |
 | `revert` | reverts an earlier commit. Name it in the body |
 
-`feat` and `fix` describe the plugin, not the repository. A new block is
+`feat` and `fix` describe the plugin, not the repository. A new filter is
 `feat`. A new command in `package.json` is `build`. A new skill or a new rule
 in `.claude/` is `docs`.
 
@@ -53,8 +53,8 @@ in `.claude/` is `docs`.
 
 The scope is a noun that names a real part of this project. Use one of:
 
-`blocks`, `server`, `client`, `package`, `tests`, `e2e`, `deps`, `template`,
-`claude`, `wp-env`, `docs`
+`server`, `client`, `package`, `tests`, `e2e`, `deps`, `claude`, `wp-env`,
+`docs`
 
 Add a new scope only when it names a directory or a file that exists. Leave
 the scope out when the change touches many parts.
@@ -97,18 +97,17 @@ Co-authored-by: Name <mail@example.com>
 Good:
 
 ```
-feat(blocks): add a notice block
+feat(client): close the popover on escape
 
-The block renders through the Interactivity API, so the notice can
-close itself without a page load.
+A keyboard user had no way to leave the preview, because only a
+pointer event closed it.
 ```
 
 ```
-fix(tests): pass the blocks directory to the registrar
+fix(server): read the version from the asset file
 
-The manifest keys are directory names, so the collection path must be
-build/blocks. With build, WordPress looked for build/example and
-registered nothing.
+The style kept a fixed version, so a browser served the old file
+from its cache after a release.
 ```
 
 ```
@@ -118,11 +117,11 @@ ci: run the client unit tests
 Bad, with the reason:
 
 ```
-Added a new block                  no type, past tense
+Added a new filter                 no type, past tense
 feat: stuff                        the description says nothing
-fix(blocks): fixed the bug.        past tense, full stop
-feat: add the block and fix the    two changes in one commit, and the
-      registrar and update the CI  title is longer than 50 characters
+fix(client): fixed the bug.        past tense, full stop
+feat: add the route and fix the    two changes in one commit, and the
+      popover and update the CI    title is longer than 50 characters
 ```
 
 ## Checklist

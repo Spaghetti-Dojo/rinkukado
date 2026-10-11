@@ -79,12 +79,26 @@ sources/server/
       Excerpt.php
 sources/client/preview/
   index.module.ts
-  policy.ts
+  context.ts
+  dom.ts
+  driver.ts
+  events.ts
   intent.ts
+  network.ts
+  policy.ts
   position.ts
   types.ts
   style.scss
 ```
+
+The client is more than one module. `index.module.ts` holds the store; the
+rest of the logic sits behind it in its own file, one concern per file:
+`context.ts` (the shared types of the event handlers), `dom.ts` (DOM reads
+and writes), `driver.ts` (the scheduler of `intent.ts`), `events.ts` (the
+delegated listeners), `intent.ts` (the state machine), `network.ts` (the
+fetcher and its cache), and `policy.ts` (which link is previewable). The
+repository's own `max-lines` and `max-lines-per-function` ESLint rules
+forced the split: a single file of this size would not pass them.
 
 Names from the template initializer: plugin name `Rinkukado`, slug `rinkukado`,
 text domain `rinkukado`, namespace `SpaghettiDojo\Rinkukado`, store name
@@ -107,7 +121,9 @@ Filters, in the naming convention of the template:
 - `rinkukado.popover.root-selector` — default `main`.
 - `rinkukado.popover.deny-class` — default `no-rinkukado`.
 - `rinkukado.popover.timings` — the three delays in milliseconds.
-- `rinkukado.rest.post-types` — default: every public post type.
+- `rinkukado.rest.post-types` — default: every public post type except
+  `attachment`. Section 8 keeps an attachment preview out of scope; the
+  filter can add `attachment` back for a site that wants it.
 - `rinkukado.rest.excerpt-length` — default 30 words.
 - `rinkukado.rest.payload` — the payload, before the response.
 
@@ -212,8 +228,10 @@ covered.
 
 Each event runs `event.target.closest('a')`, then the policy.
 
-The store owns one `AbortController` and one `Map` of href to result. A result
-is either a payload or the marker `unavailable`.
+The store, through `network.ts`, keeps one request in flight per href, each
+with its own `AbortController`, and one `Map` of href to settled result. A
+settled result is either a payload or the marker `unavailable`; a href still
+in flight or never requested holds no entry.
 
 ### 5.2 policy.ts
 
@@ -236,18 +254,22 @@ so a second hover is silent.
 
 ### 5.3 intent.ts
 
-A pure state machine over `idle → intent → opening → open → closing`. It holds
-no DOM access and no timer of its own; the store passes the current time and
-receives the actions to schedule. Jest drives it with a fake clock.
+A pure state machine over three phases, `idle`, `intent` and `open`, plus the
+deadlines it schedules: `prefetchAt`, `openAt` and `closeAt`. It holds no DOM
+access and no timer of its own; `driver.ts` passes the current time and runs
+the commands the machine returns. Jest drives it with a fake clock, at the
+level of the reducer and at the level of the driver.
 
 - Pointer enters a link: start the prefetch at 80 ms, the open at 300 ms.
 - Pointer leaves the link and the popover: close after 200 ms.
 - Pointer returns inside the close delay: cancel the close.
 - Pointer leaves before the payload arrives: abort the fetch, never open.
+- A link opens while another one is open: close the old one first.
 - First tap: open the sheet, stop the navigation.
 - Second tap on the same link: navigate.
 - Focus on a link: open after the same delay as the hover.
 - Escape: close, and return focus to the link.
+- A fetch that settles unavailable, while its href is still open: close.
 
 ### 5.4 position.ts
 
@@ -340,31 +362,39 @@ does not depend on `@wordpress/base-styles` for a value it would copy anyway.
 
 ### 6.3 Modes
 
-The gesture follows the pointer. `@media (hover: hover) and (pointer: fine)`
-gets the hover behavior. Every other pointer gets the tap behavior.
+One rule decides the gesture and the layout together. The feature holds three
+modes, and two media queries choose between them.
 
-The layout follows the pointer or the width:
-
-```scss
-@media (pointer: coarse), (max-width: #{$break-medium - 1px}) { /* sheet */ }
-```
+| Query that matches | Mode |
+| --- | --- |
+| `(pointer: coarse)` | the sheet, opened by a tap |
+| `(hover: hover) and (pointer: fine) and (min-width: 782px)` | the anchored popover, opened by a hover |
+| neither | off: no listener acts, no request leaves, no popover opens |
 
 `(pointer: coarse)` reports the primary pointer of the device. Every phone and
 every tablet therefore gets the sheet at every width and in both orientations,
 including a tablet of 1366px in landscape. A laptop with a touch screen reports
 `fine`, so it keeps the anchored popover.
 
-The width arm serves only a narrow window on a desktop. A single width cannot
-replace the pointer arm, because the landscape widths of the tablets are 1024px,
-1133px, 1180px and 1366px, and a value that covers them would also turn a
-desktop window into a sheet.
+The third mode exists because of a defect of an earlier design, which let the
+gesture follow the pointer and the layout follow the pointer or the width. A
+mouse in a window below 782px then met the one combination that cannot work:
+the sheet sits at the bottom of the window, the pointer leaves the link on the
+way to it, and the close delay of 200 ms ends before the pointer arrives. A tap
+gesture for a mouse does not solve it either, because a click that opens a
+sheet swallows the navigation that the visitor asked for. A link without a
+preview is better than a link that does not follow.
+
+`PopoverRegion` seeds both query strings. The store reads them with
+`matchMedia`, keeps a listener on each, and holds the mode in one place, so
+`state.isSheet`, the stylesheet and the handlers never disagree. A resize that
+crosses into the off mode closes an open popover.
 
 As a sheet the dialog uses `position: fixed`, `inset-inline: 0`,
-`inset-block-end: 0`, `max-block-size: 60vh`, its own `overflow: auto`, rounded
+`inset-block-end: 0`, `max-block-size: 60vb`, its own `overflow: auto`, rounded
 corners at the block start, and `padding-block-end: env(safe-area-inset-bottom)`.
-
-`PopoverRegion` seeds the same query string into the state, and the store reads
-it with `matchMedia`, so `state.isSheet` and the stylesheet never disagree.
+The stylesheet builds mobile first, so the sheet is the base and the anchored
+popover arrives inside the query of the hover mode.
 
 The page is never scroll locked. The visitor can scroll while the sheet stays at
 the bottom of the viewport.

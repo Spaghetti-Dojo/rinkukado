@@ -33,6 +33,10 @@ autoload(__DIR__);
 add_action(
     'plugins_loaded',
     static function (): void {
-        package()->boot();
+        package()
+            ->addModule(Rest\Module::new())
+            ->addModule(Preview\Module::new())
+            ->addModule(Popover\Module::new())
+            ->boot();
     }
 );

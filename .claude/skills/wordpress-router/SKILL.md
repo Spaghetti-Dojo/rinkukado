@@ -1,6 +1,6 @@
 ---
 name: wordpress-router
-description: "Use at the start of a WordPress task in this plugin to pick the right domain skill and guardrails: blocks, Interactivity API, REST API, WP-CLI, PHPStan, performance, security, build and tests."
+description: "Use at the start of a WordPress task in this plugin to pick the right domain skill and guardrails: Interactivity API, REST API, PHPStan, performance, security, build and tests."
 ---
 
 # WordPress Router
@@ -23,17 +23,17 @@ Use this skill at the start of most WordPress tasks to:
 1. Locate the target in the layout:
    - `sources/package.php` — the package factory, the public entry point.
    - `sources/server/` — one directory per module.
-   - `sources/client/blocks/` — one directory per block. It holds every file
-     of the block.
+   - `sources/client/preview/` — the client of the popover.
+   - `sources/client/interactivity/` — the shared helpers of the stores.
    - `tests/unit/`, `tests/integration/`, `tests/e2e/`.
 2. Route by intent. Read:
-   - `skills/wordpress-router/references/decision-tree.md`
+   - `references/decision-tree.md`
 3. Apply the guardrails of the decision tree before you change anything.
 
 ## Verification
 
-Run the commands of the domain skill. For the block and the build commands,
-read `skills/wp-block-development/references/tooling-and-testing.md`.
+Run the commands of the domain skill. For the build and the test commands,
+read `docs/development.md` and `docs/testing.md`.
 
 ## Escalation
 

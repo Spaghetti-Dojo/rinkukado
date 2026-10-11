@@ -21,7 +21,7 @@ sources/server/
 ```
 
 **Guidelines:**
-- One module per feature domain (e.g., `BlockStyles`, `Theme`, `CustomPostTypes`)
+- One module per feature domain (e.g., `Popover`, `Preview`)
 - Each module contains one `Module.php` entry point
 - Feature logic is separated into dedicated classes
 
@@ -42,16 +42,16 @@ use Inpsyde\Modularity\Module\ExecutableModule;
 use Inpsyde\Modularity\Module\ModuleClassNameIdTrait;
 use Psr\Container\ContainerInterface;
 
-class Module implements ExecutableModule
+final class Module implements ExecutableModule
 {
     use ModuleClassNameIdTrait;
 
-    public static function new(): Module
+    public static function new(): self
     {
         return new self();
     }
 
-    final private function __construct()
+    private function __construct()
     {
     }
 
@@ -81,9 +81,11 @@ class Module implements ExecutableModule
 - Defining singleton instances to be consumed by other modules
 - Building reusable components that require container registration
 
+`Preview/Module.php` is the existing example: it implements both `ServiceModule` and `ExecutableModule`. `Rest/Module.php` implements only `ServiceModule`.
+
 ```php
 // Only create this pattern when explicitly requested
-class Module implements ServiceModule
+final class Module implements ServiceModule
 {
     use ModuleClassNameIdTrait;
 
@@ -165,7 +167,7 @@ final readonly class FeatureClass
 - Asset enqueueing? Add constants for handles
 - Complex data structures? Add PHPStan type annotations
 - Multiple operations? Add multiple private methods
-- Simple modification? Keep it minimal like `ThemeJson`
+- Simple modification? Keep it minimal like `Popover\ScriptModules`
 
 ## WordPress Integration Patterns
 
@@ -177,9 +179,10 @@ final readonly class FeatureClass
 public function init(): void
 {
     // Use first-class callable syntax
-    add_action('init', $this->register_post_type(...));
-    add_filter('the_content', $this->modify_content(...), 10, 1);
-    add_action('wp_enqueue_scripts', $this->enqueue_assets(...), PHP_INT_MAX);
+    add_action('init', $this->register(...));
+    add_action('wp_enqueue_scripts', $this->enqueue(...));
+    // Add a priority only when the order matters
+    add_action('wp_footer', $this->render(...), PHP_INT_MAX);
 }
 ```
 
@@ -194,22 +197,25 @@ public function init(): void
 Private methods handle actual WordPress API interactions:
 
 ```php
-private function register_post_type(): void
+private function register(): void
 {
-    register_post_type('my_cpt', [
-        'public' => true,
-        'label' => __('My CPT', 'text-domain'),
-    ]);
+    $asset = $this->asset();
+
+    wp_register_script_module(
+        self::HANDLE,
+        plugins_url('build/preview/index.js', $this->pluginFile()),
+        $asset['dependencies'],
+        $asset['version']
+    );
 }
 
-private function enqueue_assets(): void
+private function enqueue(): void
 {
-    wp_enqueue_style(
-        self::STYLE_HANDLE,
-        get_theme_file_uri('dist/styles/feature.css'),
-        [],
-        wp_get_theme()->get('Version')
-    );
+    if (is_admin() || is_feed()) {
+        return;
+    }
+
+    wp_enqueue_script_module(self::HANDLE);
 }
 ```
 
@@ -218,21 +224,14 @@ private function enqueue_assets(): void
 Use PHPStan type annotations for complex array structures:
 
 ```php
-/**
- * @phpstan-type BlockStyle array{
- *   name: string,
- *   label: string,
- *   inline_style?: string
- * }
- */
-final readonly class BlockStyles
+final readonly class ScriptModules
 {
     /**
-     * @param list<BlockStyle> $styles
+     * @return array{dependencies: array<array<string, string>|string>, version: string}
      */
-    private function __construct(
-        private array $styles,
-    ) {
+    private function asset(): array
+    {
+        // ...
     }
 }
 ```
@@ -241,12 +240,12 @@ final readonly class BlockStyles
 
 | Element | Convention | Example |
 |---------|-----------|---------|
-| **Package namespace** | `SpaghettiDojo\ProjectName\FeatureName` | `SpaghettiDojo\ProjectName\BlockStyles` |
-| **Module class** | `Module` | `BlockStyles\Module` |
-| **Feature class** | Descriptive noun | `Button`, `ThemeJson`, `CustomPostType` |
+| **Package namespace** | `SpaghettiDojo\Rinkukado\FeatureName` | `SpaghettiDojo\Rinkukado\Popover` |
+| **Module class** | `Module` | `Popover\Module` |
+| **Feature class** | Descriptive noun | `PopoverRegion`, `ScriptModules` |
 | **Factory method** | `new()` | `public static function new()` |
 | **Hook registration** | `init()` | `public function init(): void` |
-| **Constants** | `SCREAMING_SNAKE_CASE` | `BLOCK_STYLES_HANDLE` |
+| **Constants** | `SCREAMING_SNAKE_CASE` | `HANDLE` |
 
 ## Key Principles
 

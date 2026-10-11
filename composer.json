@@ -18,7 +18,6 @@
 	"require-dev": {
 		"bnf/phpstan-psr-container": "^1.0",
 		"brain/monkey": "^2.6",
-		"inpsyde/wp-stubs": "dev-main",
 		"mockery/mockery": "^1.6",
 		"pestphp/pest": "^v4.3.0",
 		"phpstan/phpstan": "^2.1",

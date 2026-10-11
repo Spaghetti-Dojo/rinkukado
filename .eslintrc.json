@@ -3,7 +3,7 @@
 		"browser": true,
 		"es2024": true
 	},
-	"extends": [ "plugin:@wordpress/eslint-plugin/recommended" ],
+	"extends": ["plugin:@wordpress/eslint-plugin/recommended"],
 	"parser": "@typescript-eslint/parser",
 	"settings": {
 		"import/resolver": "typescript"
@@ -25,20 +25,20 @@
 		"no-return-await": "off",
 		"no-undef-init": "error",
 		"no-implicit-globals": "error",
-		"max-depth": [ "error", 2 ],
+		"max-depth": ["error", 2],
 		"max-lines": [
 			"error",
 			{ "max": 300, "skipBlankLines": false, "skipComments": false }
 		],
-		"max-statements-per-line": [ "error", { "max": 1 } ],
-		"complexity": [ "error", 5 ],
-		"max-lines-per-function": [ "error", 25 ],
-		"max-nested-callbacks": [ "error", 2 ],
+		"max-statements-per-line": ["error", { "max": 1 }],
+		"complexity": ["error", 5],
+		"max-lines-per-function": ["error", 25],
+		"max-nested-callbacks": ["error", 2],
 		"no-multiple-empty-lines": [
 			"error",
 			{ "max": 1, "maxEOF": 1, "maxBOF": 0 }
 		],
-		"max-classes-per-file": [ "error", 1 ],
+		"max-classes-per-file": ["error", 1],
 		"@typescript-eslint/consistent-indexed-object-style": "warn",
 		"@typescript-eslint/prefer-literal-enum-member": "warn",
 		"@typescript-eslint/prefer-string-starts-ends-with": "warn",
@@ -83,7 +83,7 @@
 		"@typescript-eslint/return-await": "error",
 		"@typescript-eslint/strict-boolean-expressions": "error",
 		"@typescript-eslint/switch-exhaustiveness-check": "error",
-		"@typescript-eslint/init-declarations": [ "error", "always" ],
+		"@typescript-eslint/init-declarations": ["error", "always"],
 		"@typescript-eslint/consistent-generic-constructors": [
 			"error",
 			"type-annotation"
@@ -113,12 +113,20 @@
 				"fixStyle": "separate-type-imports"
 			}
 		],
-		"@typescript-eslint/method-signature-style": [ "error", "property" ],
+		"@typescript-eslint/method-signature-style": ["error", "property"],
 		"@wordpress/i18n-text-domain": [
 			"error",
 			{
 				"allowedTextDomain": "rinkukado"
 			}
 		]
-	}
+	},
+	"overrides": [
+		{
+			"files": ["tests/**/*.ts"],
+			"rules": {
+				"@typescript-eslint/prefer-readonly-parameter-types": "off"
+			}
+		}
+	]
 }

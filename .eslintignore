@@ -8,3 +8,4 @@
 *.config.ts
 .prettierrc.js
 /bin/
+/website/

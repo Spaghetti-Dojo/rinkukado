@@ -8,5 +8,5 @@
 		"noUnusedParameters": false,
 		"exactOptionalPropertyTypes": false
 	},
-	"include": [ "./specs/**/*.ts" ]
+	"include": ["./specs/**/*.ts"]
 }

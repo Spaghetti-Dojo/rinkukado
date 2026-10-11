@@ -1,0 +1,259 @@
+// The styles of the preview: the anchored popover in the hover mode, and
+// the bottom sheet in the sheet mode. The custom properties let a theme
+// override the colours.
+
+@use "../styles/mixins/units";
+
+// The breakpoint of WordPress. $break-medium is 782px in the branches wp/6.9,
+// wp/7.0 and wp/7.1. The value lives here, so the plugin needs no package for
+// one number.
+$break-medium: 782px;
+
+// The colours follow the neutral scale of shadcn, in the style new-york. The
+// names stay the names of this plugin, so a theme that already overrides one
+// keeps its override.
+.rinkukado {
+	--rinkukado-accent: #f5f5f5;
+	--rinkukado-accent-hover: #e5e5e5;
+	--rinkukado-background: #fff;
+	--rinkukado-border: #e5e5e5;
+	--rinkukado-muted: #737373;
+	--rinkukado-primary: #171717;
+	--rinkukado-primary-text: #fafafa;
+	--rinkukado-radius: #{units.rem(10)};
+	--rinkukado-ring: #0a0a0a;
+	--rinkukado-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+	--rinkukado-text: #0a0a0a;
+	--rinkukado-z-index: 100000;
+
+	display: contents;
+}
+
+// The sheet is the base, because this project builds mobile first. Every
+// coarse pointer keeps it, at any width. A fine pointer on a wide window gets
+// the anchored popover further down.
+.rinkukado__dialog {
+	align-content: start;
+	background: var(--rinkukado-background);
+	border: 1px solid var(--rinkukado-border);
+	border-block-end: 0;
+	border-inline: 0;
+	border-radius: calc(var(--rinkukado-radius) + 4px) calc(var(--rinkukado-radius) + 4px) 0 0;
+	box-shadow: var(--rinkukado-shadow);
+	box-sizing: border-box;
+	color: var(--rinkukado-text);
+	display: grid;
+	gap: units.rem(8) units.rem(16);
+	grid-template-areas:
+		"title"
+		"excerpt"
+		"cta";
+	grid-template-columns: 1fr;
+	inline-size: 100%;
+	inset-block-end: 0;
+	inset-block-start: auto;
+	inset-inline: 0;
+	max-block-size: 60vb;
+	overflow: auto;
+	padding: units.rem(16);
+	padding-block-end: calc(#{units.rem(16)} + env(safe-area-inset-bottom));
+	position: fixed;
+	z-index: var(--rinkukado-z-index);
+
+	&[hidden] {
+		display: none;
+	}
+}
+
+// The second column exists only when the post holds a thumbnail. The thumbnail
+// spans every row, and the last row takes the free space, so the title and the
+// excerpt keep the height of their own text.
+.rinkukado--with-media {
+	grid-template-areas:
+		"title media"
+		"excerpt media"
+		"cta media";
+	grid-template-columns: 1fr auto;
+	grid-template-rows: auto auto 1fr;
+}
+
+// A ghost icon button. It keeps the surface of the dialog, so it stays legible
+// when it sits over a thumbnail.
+.rinkukado__close {
+	align-items: center;
+	background: var(--rinkukado-background);
+	block-size: units.rem(28);
+	border: 0;
+	border-radius: calc(var(--rinkukado-radius) - 2px);
+	color: var(--rinkukado-muted);
+	cursor: pointer;
+	display: inline-flex;
+	font-size: units.rem(16);
+	inline-size: units.rem(28);
+	inset-block-start: units.rem(8);
+	inset-inline-end: units.rem(8);
+	justify-content: center;
+	line-height: 1;
+	padding: 0;
+	position: absolute;
+	transition: background-color 120ms ease, color 120ms ease;
+
+	&:hover {
+		background: var(--rinkukado-accent);
+		color: var(--rinkukado-text);
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--rinkukado-ring);
+		outline-offset: 2px;
+	}
+}
+
+.rinkukado__title {
+	color: inherit;
+	font-size: units.rem(15);
+	font-weight: 600;
+	grid-area: title;
+	letter-spacing: -0.01em;
+	line-height: 1.3;
+	padding-inline-end: units.rem(32);
+	text-decoration: none;
+
+	&:hover {
+		text-decoration: underline;
+	}
+
+	&:focus-visible {
+		border-radius: 2px;
+		outline: 2px solid var(--rinkukado-ring);
+		outline-offset: 2px;
+	}
+}
+
+.rinkukado__excerpt {
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 4;
+	color: var(--rinkukado-muted);
+	display: -webkit-box;
+	font-size: units.rem(13);
+	grid-area: excerpt;
+	line-height: 1.5;
+	margin: 0;
+	overflow: hidden;
+}
+
+.rinkukado__media {
+	align-self: start;
+	block-size: units.rem(120);
+	border-radius: var(--rinkukado-radius);
+	grid-area: media;
+	inline-size: units.rem(120);
+	object-fit: cover;
+
+	.rinkukado__dialog:not(.rinkukado--with-media) & {
+		display: none;
+	}
+}
+
+// The primary pill button of the card. It carries its own pair of colours,
+// because the primary of shadcn is not the same value as the text.
+.rinkukado__cta {
+	align-items: center;
+	align-self: start;
+	background: var(--rinkukado-primary);
+	block-size: units.rem(32);
+	border-radius: 999px;
+	color: var(--rinkukado-primary-text);
+	display: inline-flex;
+	font-size: units.rem(13);
+	font-weight: 500;
+	grid-area: cta;
+	justify-self: start;
+	line-height: 1;
+	margin-block-start: units.rem(4);
+	padding-inline: units.rem(12);
+	text-decoration: none;
+	transition: background-color 120ms ease;
+
+	&:hover {
+		background: color-mix(in oklab, var(--rinkukado-primary) 90%, transparent);
+		color: var(--rinkukado-primary-text);
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--rinkukado-ring);
+		outline-offset: 2px;
+	}
+}
+
+// A fine pointer on a wide window gets the anchored popover. This query is the
+// exact complement of the sheet rule, which the store also reads.
+@media (hover: hover) and (pointer: fine) and (min-width: $break-medium) {
+
+	.rinkukado__dialog {
+		border: 1px solid var(--rinkukado-border);
+		border-radius: calc(var(--rinkukado-radius) + 4px);
+		inline-size: min(units.rem(448), calc(100vi - #{units.rem(32)}));
+		inset-block-end: auto;
+		inset-inline: auto;
+		max-block-size: none;
+		overflow: visible;
+		padding-block-end: units.rem(16);
+	}
+}
+
+// The browsers that support anchor positioning place the dialog themselves.
+@supports (anchor-name: --a) {
+
+	.rinkukado__dialog:not(.rinkukado--sheet) {
+		margin: units.rem(8);
+		position-anchor: --rinkukado-anchor;
+		position-area: block-start span-inline-end;
+		position-try-fallbacks: flip-block, flip-inline;
+	}
+}
+
+.rinkukado__dialog:not([hidden]) {
+	animation: rinkukado-appear 120ms ease-out;
+}
+
+@keyframes rinkukado-appear {
+
+	from {
+		opacity: 0;
+		transform: translateY(units.rem(4));
+	}
+
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+	.rinkukado__dialog:not([hidden]) {
+		animation: none;
+	}
+
+	.rinkukado__close,
+	.rinkukado__cta {
+		transition: none;
+	}
+}
+
+@media (prefers-color-scheme: dark) {
+
+	.rinkukado {
+		--rinkukado-accent: #262626;
+		--rinkukado-accent-hover: #404040;
+		--rinkukado-background: #171717;
+		--rinkukado-border: rgba(255, 255, 255, 0.1);
+		--rinkukado-muted: #b5b5b5;
+		--rinkukado-primary: #e5e5e5;
+		--rinkukado-primary-text: #171717;
+		--rinkukado-ring: #d4d4d4;
+		--rinkukado-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.5);
+		--rinkukado-text: #fafafa;
+	}
+}

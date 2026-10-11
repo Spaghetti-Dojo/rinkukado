@@ -21,7 +21,8 @@
 		"pnpm": ">=10.0.0"
 	},
 	"dependencies": {
-		"@wordpress/interactivity": "wp-7.0"
+		"@wordpress/interactivity": "wp-7.0",
+		"zod": "^4.6.5"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.59.1",
@@ -53,5 +54,12 @@
 		"test:e2e:ui": "playwright test --ui",
 		"test:unit": "wp-scripts test-unit-js --passWithNoTests",
 		"test:unit:watch": "wp-scripts test-unit-js --watch"
+	},
+	"jest": {
+		"preset": "@wordpress/jest-preset-default",
+		"moduleNameMapper": {
+			"^@wordpress/interactivity$": "<rootDir>/tests/unit/client/interactivity-mock.ts",
+			"\\.(scss|css)$": "<rootDir>/tests/unit/client/style-mock.ts"
+		}
 	}
 }

@@ -7,19 +7,15 @@ Route by the intent of the request.
 
 - **Interactivity API / data-wp-* directives / @wordpress/interactivity / viewScriptModule**
   - Route → `wp-interactivity-api`.
-- **Abilities API / wp_register_ability / wp-abilities/v1 / @wordpress/abilities**
-  - Route → `wp-abilities-api`.
-- **Blocks / block.json / registerBlockType / attributes / save serialization**
-  - Route → `wp-block-development`.
+- **Server data of a store / getConfig / getServerState / getServerContext / Zod schema**
+  - Route → `interactivity-server-data`.
 - **Plugins / hooks / activation hook / uninstall / Settings API / admin pages**
   - Route → `wp-plugin-development`.
 - **REST endpoint / register_rest_route / permission_callback**
   - Route → `wp-rest-api`.
-- **WP-CLI / wp-cli.yml / commands**
-  - Route → `wp-wpcli-and-ops`.
 - **Build tooling / @wordpress/scripts / pnpm scripts / wp-env / Playwright**
-  - Route → `wp-block-development`, file `references/tooling-and-testing.md`.
-- **PHPStan / static analysis / phpstan.neon / phpstan-baseline.neon**
+  - Read `docs/development.md` and `docs/testing.md`. No skill covers this route.
+- **PHPStan / static analysis / phpstan.neon**
   - Route → `wp-phpstan`.
 - **Performance / caching / query profiling / editor slowness**
   - Route → `wp-performance`.
