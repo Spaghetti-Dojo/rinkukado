@@ -57,6 +57,20 @@ The site runs on `http://localhost:8877`.
 
 Read [Testing](testing.md) before you write a test.
 
+## Documentation site
+
+The site in `website/` is a Docusaurus project. It reads the documents from
+`docs/`, and it has its own `package.json` and lockfile.
+
+```bash
+cd website
+pnpm install
+pnpm start
+```
+
+`pnpm build` fails on a broken link. The `Deploy Docs` workflow builds the
+site on each pull request, and publishes it to GitHub Pages from `main`.
+
 ## Layout
 
 ```
@@ -74,6 +88,7 @@ tests/integration/server/  PHP integration tests. Real WordPress on SQLite.
 tests/e2e/                 Playwright specs and the mu-plugins of the tests.
 tests/bootstrap-integration.php  Installs WordPress for the integration tests.
 build/                     Generated. Never edit it by hand.
+website/                   The Docusaurus site of this documentation.
 ```
 
 Each module has its own document in `docs/modules/`:

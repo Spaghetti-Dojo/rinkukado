@@ -5,3 +5,4 @@ dist
 bin
 build
 pnpm-lock.yaml
+website

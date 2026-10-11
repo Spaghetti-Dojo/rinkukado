@@ -1,0 +1,31 @@
+:root {
+	--ifm-color-primary: #c73e2d;
+	--ifm-color-primary-dark: #b33829;
+	--ifm-color-primary-darker: #a93526;
+	--ifm-color-primary-darkest: #8b2c1f;
+	--ifm-color-primary-light: #d24c3a;
+	--ifm-color-primary-lighter: #d55545;
+	--ifm-color-primary-lightest: #de7566;
+	--ifm-code-font-size: 95%;
+}
+
+[data-theme='dark'] {
+	--ifm-color-primary: #e8705f;
+	--ifm-color-primary-dark: #e35844;
+	--ifm-color-primary-darker: #e04c37;
+	--ifm-color-primary-darkest: #bd3826;
+	--ifm-color-primary-light: #ed887a;
+	--ifm-color-primary-lighter: #f09487;
+	--ifm-color-primary-lightest: #f6b8b0;
+}
+
+/* The screenshot of a phone is tall. Keep it at the width of a phone. */
+.markdown img[src*='sheet-touch'] {
+	max-width: 320px;
+}
+
+.markdown img[src*='popover-desktop'],
+.markdown img[src*='sheet-touch'] {
+	border: 1px solid var(--ifm-color-emphasis-300);
+	border-radius: 8px;
+}

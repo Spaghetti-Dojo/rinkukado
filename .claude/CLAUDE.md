@@ -15,6 +15,7 @@
   - `tests/unit/client/` — Jest. Files end with `.test.ts`.
   - `tests/e2e/specs/` — Playwright. Files end with `.spec.ts`.
 - `build/` — generated. Never edit it by hand.
+- `website/` — the Docusaurus site of the documentation. It reads `docs/`, and excludes `docs/superpowers/`. It has its own `package.json` and lockfile.
 
 ## Module Documents
 
@@ -28,7 +29,7 @@ Read the document of a module before you change that module.
 Keep the documents in sync with the code, in the same commit:
 
 - If you change the behavior, the server data or a filter of a module, update its document.
-- If you add a module, add `docs/modules/<client|server>/<name>.md`, and add its row to the table in `README.md`. `sources/client/styles/` is not a module and needs no document.
+- If you add a module, add `docs/modules/<client|server>/<name>.md`, and add its row to the table in `README.md`, to the table in `docs/index.md` and to `website/sidebars.js`. `sources/client/styles/` is not a module and needs no document.
 - Add a module to the list above only if its document holds rules that the code does not show.
 
 ## Quality Assurance

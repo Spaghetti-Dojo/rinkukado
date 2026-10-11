@@ -33,6 +33,8 @@ reload.
 
 ## Documentation
 
+Read the documentation at <https://spaghetti-dojo.github.io/rinkukado/>.
+
 | Document | Content |
 | --- | --- |
 | [Customize](docs/customize.md) | The filters, and how to add a module to the plugin. |
