@@ -6,10 +6,8 @@ middlewares. The code lives in `sources/server/Rest/`.
 ## Rule
 
 The library does not use the plugin. It uses no class of another module, no
-function of the plugin and no filter of the plugin.
-`tests/unit/server/Rest/ArchTest.php` guards the rule. It fails when a file of
-the library names a symbol of `SpaghettiDojo\Rinkukado` outside the `Rest`
-namespace, or a `rinkukado.*` filter.
+function of the plugin and no filter of the plugin. No test guards this rule,
+so examine each change of the library against it.
 
 One coupling stays: `ErrorCatch` translates its message with the `rinkukado`
 text domain. A project that copies the library must change the text domain in

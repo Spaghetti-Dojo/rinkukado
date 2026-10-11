@@ -223,12 +223,10 @@ fails, then the moves make it pass.
 
 The review of the branch found six minor points. These changes answer them.
 
-- **The guard is stronger than section 5 shows.** `ArchTest.php` keeps the
-  architecture test and adds two tests that read the files of the library.
-  The first fails when a file names a symbol of `SpaghettiDojo\Rinkukado`
-  outside the `Rest` namespace. It also catches a new module and the
-  `package()` function. The second fails when a file names a `rinkukado.*`
-  filter.
+- **The guard of section 5 is removed.** `tests/unit/server/Rest/ArchTest.php`
+  no longer exists. The `Rest` module will move to an external library
+  later, and that move makes the coupling impossible. Until then, no test
+  guards the rule of no coupling.
 - **`Popover\Module` gets `Config` from the container.** Section 2 put
   `Popover` out of scope. The module now needs the service that
   `Preview\Module` publishes.
