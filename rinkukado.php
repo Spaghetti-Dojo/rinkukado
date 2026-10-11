@@ -35,6 +35,7 @@ add_action(
     static function (): void {
         package()
             ->addModule(Rest\Module::new())
+            ->addModule(Preview\Module::new())
             ->addModule(Popover\Module::new())
             ->boot();
     }

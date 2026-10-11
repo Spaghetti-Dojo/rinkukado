@@ -39,7 +39,8 @@ reload.
 | [Preview](docs/modules/client/preview.md) | The client of the popover, and diagrams of how its modules work together. |
 | [Interactivity](docs/modules/client/interactivity.md) | The shared helpers that check the server data of a store. |
 | [Popover](docs/modules/server/popover.md) | The dialog markup, the script module, and the config and state of the store. |
-| [REST](docs/modules/server/rest.md) | The preview endpoint, its payload, its errors, its cache and its filters. |
+| [Preview (server)](docs/modules/server/preview.md) | The preview endpoint, its payload, its errors, its cache and its filters. |
+| [REST](docs/modules/server/rest.md) | The library for routes, schemas, controllers and middlewares. |
 | [Development](docs/development.md) | Quick start, requirements, local environment, quality commands and layout. |
 | [Testing](docs/testing.md) | The four test layers, and when to use each one. |
 

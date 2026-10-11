@@ -7,7 +7,7 @@ namespace SpaghettiDojo\Rinkukado\Rest\Middlewares;
 use SpaghettiDojo\Rinkukado\Rest;
 
 /**
- * Lets a shared cache keep the preview of an anonymous visitor.
+ * Lets a shared cache keep the response of an anonymous visitor.
  */
 final readonly class Caching implements Rest\Middleware
 {

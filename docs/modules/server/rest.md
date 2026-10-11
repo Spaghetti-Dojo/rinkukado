@@ -1,71 +1,55 @@
 # REST
 
-The client gets the content of each preview from one endpoint. The code
-lives in `sources/server/Rest/`.
+The REST library registers a route from a schema, a controller and a list of
+middlewares. The code lives in `sources/server/Rest/`.
 
-## Request
+## Rule
 
-```
-GET /wp-json/rinkukado/v1/preview?url=<absolute-url>
-```
+The library does not use the plugin. It uses no class of another module and
+no filter of the plugin. `tests/unit/server/Rest/ArchTest.php` fails when a
+class of the library uses `Config`, `Preview` or `Popover`.
 
-The `url` parameter is the absolute URL of a post of this site.
+One coupling stays: `ErrorCatch` translates its message with the `rinkukado`
+text domain. A project that copies the library must change the text domain in
+that file.
 
-## Response
+## Classes
 
-The endpoint answers `200` with `id`, `title`, `excerpt`, `permalink` and
-`thumbnail`. The `thumbnail` field is `null`, or an object with `src`,
-`srcset`, `width`, `height` and `alt`.
-
-```json
-{
-  "id": 42,
-  "title": "Hello world",
-  "excerpt": "The first words of the post…",
-  "permalink": "https://example.com/hello-world/",
-  "thumbnail": {
-    "src": "https://example.com/wp-content/uploads/hello.jpg",
-    "srcset": "…",
-    "width": 300,
-    "height": 200,
-    "alt": ""
-  }
-}
-```
-
-The `rinkukado.rest.payload` filter can change the payload. See
-[Filters](#filters).
-
-## Errors
-
-Every rejection answers `404` with the code `not_found`. The response never
-says which check failed.
-
-## Cache
-
-| Request | Header |
+| Class | Role |
 | --- | --- |
-| anonymous | `Cache-Control: public, max-age=300` |
-| from a logged-in user | `Cache-Control: no-store` |
+| `Route` | Builds a route and registers it with `register_rest_route`. |
+| `Schema` | The contract of a request schema. `toArray()` returns a JSON Schema. |
+| `Controller` | The contract of a controller. It gets the request and returns a response or a `WP_Error`. |
+| `Middleware` | The contract of a middleware. It gets the request and the next callable. |
+| `ErrorFactory` | Makes a `WP_Error`. |
+| `Middlewares\ErrorCatch` | Catches a `Throwable` and answers `500` with the code `internal_error`. It adds the details only if `WP_DEBUG` is true. |
+| `Middlewares\Caching` | Sets `Cache-Control`: `public, max-age=300` for an anonymous request, `no-store` for a logged-in user. |
+| `Module` | Publishes `ErrorFactory`, `Middlewares\ErrorCatch` and `Middlewares\Caching`. |
 
-The client also caches each settled result for the page session. See
-[Preview](../client/preview.md).
+`Method`, `MiddlewareProcess` and `RestRegistTrait` are internal.
 
-## Filters
+## Use
 
-| Filter | Default | Purpose |
-| --- | --- | --- |
-| `rinkukado.rest.post-types` | every public type except `attachment` | The types that the endpoint accepts. |
-| `rinkukado.rest.excerpt-length` | `30` | The word count of the fallback excerpt. |
-| `rinkukado.rest.payload` | the payload | The last change before the response. |
+A consumer module writes a schema and a controller, then registers the route
+on `rest_api_init`:
 
-### Post types
+```php
+add_action('rest_api_init', static function () use ($container): void {
+    Route::get('my-plugin/v1', '/things', ThingSchema::new(), $controller)
+        ->withMiddleware($container->get(Middlewares\ErrorCatch::class))
+        ->withMiddleware($container->get(Middlewares\Caching::class))
+        ->register();
+});
+```
 
-The default list of post types excludes `attachment`, so a media page shows
-no preview. Add `attachment` back through `rinkukado.rest.post-types` when a
-site wants a preview for its media pages.
+The first middleware is the outermost one. It gets the request first and the
+response last. Add `ErrorCatch` first, so that it also catches an error of
+the other middlewares.
 
-### Payload
+## Limits
 
-`rinkukado.rest.payload` receives the payload array and the `WP_Post` object,
-just before the endpoint sends the response.
+- `Route` supports only the `GET` method.
+- Every route is public. The `permission_callback` is `__return_true`.
+
+The [Preview](preview.md) module is the consumer of the library in this
+plugin.

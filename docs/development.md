@@ -63,7 +63,8 @@ Read [Testing](testing.md) before you write a test.
 sources/package.php        The package factory. The public entry point.
 sources/server/            PHP. One directory per module.
 sources/server/Popover/    Registers the script module and its config.
-sources/server/Rest/       The preview endpoint and its middlewares.
+sources/server/Preview/    The preview endpoint.
+sources/server/Rest/       The library for routes and middlewares.
 sources/client/preview/    The client of the popover.
 sources/client/interactivity/  Shared helpers of the Interactivity API stores.
 sources/client/styles/     Shared SCSS.
@@ -80,4 +81,5 @@ Each module has its own document in `docs/modules/`:
 - [Preview](modules/client/preview.md)
 - [Interactivity](modules/client/interactivity.md)
 - [Popover](modules/server/popover.md)
+- [Preview (server)](modules/server/preview.md)
 - [REST](modules/server/rest.md)

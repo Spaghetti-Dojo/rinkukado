@@ -22,6 +22,7 @@ Read the document of a module before you change that module.
 
 - `sources/client/preview/` → `docs/modules/client/preview.md`
 - `sources/server/Popover/` → `docs/modules/server/popover.md`
+- `sources/server/Preview/` → `docs/modules/server/preview.md`
 - `sources/server/Rest/` → `docs/modules/server/rest.md`
 
 Keep the documents in sync with the code, in the same commit:

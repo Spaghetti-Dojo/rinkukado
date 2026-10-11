@@ -54,7 +54,7 @@ page is open. No directive reads them.
 
 | Key | Value |
 | --- | --- |
-| `endpoint` | The URL of the preview endpoint. See [REST](rest.md). |
+| `endpoint` | The URL of the preview endpoint. See [Preview](preview.md). |
 | `nonce` | A `wp_rest` nonce for a logged-in user. Empty for a visitor. |
 | `rootSelector` | The element that holds the links. |
 | `containerSelector` | The element that must hold the link. |

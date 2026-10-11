@@ -81,7 +81,7 @@ final class Module implements ExecutableModule
 - Defining singleton instances to be consumed by other modules
 - Building reusable components that require container registration
 
-`Rest/Module.php` is the existing example: it implements both `ServiceModule` and `ExecutableModule`.
+`Preview/Module.php` is the existing example: it implements both `ServiceModule` and `ExecutableModule`. `Rest/Module.php` implements only `ServiceModule`.
 
 ```php
 // Only create this pattern when explicitly requested

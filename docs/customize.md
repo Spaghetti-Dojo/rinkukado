@@ -22,7 +22,7 @@ add_filter('rinkukado.popover.root-selector', static fn (): string => '.site-con
 Each module document describes its filters:
 
 - [Popover](modules/server/popover.md) for `rinkukado.popover.*`.
-- [REST](modules/server/rest.md) for `rinkukado.rest.*`.
+- [Preview](modules/server/preview.md) for `rinkukado.rest.*`.
 
 ## Extend the plugin
 
