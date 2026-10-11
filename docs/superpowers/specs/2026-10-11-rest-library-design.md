@@ -28,7 +28,8 @@ headers and its filters stay the same.
 | Names of the preview classes | No `Preview` prefix: `Controller`, `Repository`, `Schema`, `Excerpt`. The namespace already names the preview. |
 | Owner of the route | `Preview\Module` registers `rinkukado/v1/preview`. |
 | Owner of `Config` | `Preview\Module` publishes the `Config` service. |
-| Message of `ErrorCatch` | The consumer gives it to `ErrorCatch::new()`. |
+| Message of `ErrorCatch` | The plugin gives a closure to `Rest\Module::new()`. The closure returns the translated message. |
+| `ErrorCatch` service | `Rest\Module` publishes it. |
 | Guard | An architecture test of Pest fails when the library uses the plugin. |
 | Filter names | `rinkukado.rest.*` stay, because sites can use them already. |
 | Out of scope | A separate namespace, a separate Composer package, new HTTP methods, and a change of `Popover`. |
@@ -48,7 +49,7 @@ The library has three couplings to the plugin today.
 | File | Coupling | Fix |
 | --- | --- | --- |
 | `Rest/Module.php` | Uses `Config`. Publishes the preview services. Registers the preview route. | Move those parts to `Preview\Module`. |
-| `Rest/Middlewares/ErrorCatch.php` | Translates its message with the `rinkukado` text domain. | Get the message as an argument. |
+| `Rest/Middlewares/ErrorCatch.php` | Translates its message with the `rinkukado` text domain. | Get the message as an argument. `Rest\Module` gets it from a closure of the plugin. |
 | `Rest/Preview/*` | Plugin code in the namespace of the library. | Move to `Preview/Rest/` and rename. |
 
 `Rest/Middlewares/Caching.php` has no code coupling. Only its doc comment
@@ -74,14 +75,12 @@ sources/server/Rest/
     ErrorCatch.php
 ```
 
-`Rest\Module` becomes a `ServiceModule` only. It publishes the services that
-need no data from the consumer:
+`Rest\Module` becomes a `ServiceModule` only. It has no `run()` method and it
+registers no route. It publishes:
 
 - `ErrorFactory`
 - `Middlewares\Caching`
-
-It does not publish `Middlewares\ErrorCatch`, because that class now needs a
-message from the consumer. It has no `run()` method and it registers no route.
+- `Middlewares\ErrorCatch`
 
 `ErrorCatch` gets the message as its second argument:
 
@@ -94,6 +93,32 @@ public static function new(
 
 The error code `internal_error`, the status `500` and the `WP_DEBUG` details
 stay the same.
+
+The library has no text domain, so the message comes from the plugin.
+`Rest\Module::new()` gets a closure that returns the message:
+
+```php
+/**
+ * @param \Closure(): string $errorMessage
+ */
+public static function new(\Closure $errorMessage): self
+```
+
+The factory of the `ErrorCatch` service calls the closure:
+
+```php
+Middlewares\ErrorCatch::class => static fn (
+    ContainerInterface $container
+): Middlewares\ErrorCatch => Middlewares\ErrorCatch::new(
+    $container->get(ErrorFactory::class),
+    $errorMessage()
+),
+```
+
+A closure is necessary, and a string is not enough. The plugin adds the module
+on `plugins_loaded`, and a translation at that moment loads the text domain
+too early. The container builds a service only on the first `get()`. For
+`ErrorCatch`, that is inside the `rest_api_init` callback, after `init`.
 
 ### 4.2 The Preview module
 
@@ -150,21 +175,11 @@ add_action('rest_api_init', static function () use ($container): void {
         Rest\Schema::new(),
         $container->get(Rest\Controller::class)
     )
-        ->withMiddleware(ErrorCatch::new(
-            $container->get(ErrorFactory::class),
-            __(
-                'An internal error occurred. Contact the site owner or try again later.',
-                'rinkukado'
-            )
-        ))
+        ->withMiddleware($container->get(ErrorCatch::class))
         ->withMiddleware($container->get(Caching::class))
         ->register();
 });
 ```
-
-The module builds `ErrorCatch` inside the `rest_api_init` callback. The
-translation then runs after `init`, so WordPress does not load the text domain
-too early.
 
 ### 4.3 The bootstrap
 
@@ -172,7 +187,12 @@ too early.
 
 ```php
 package()
-    ->addModule(Rest\Module::new())
+    ->addModule(Rest\Module::new(
+        static fn (): string => __(
+            'An internal error occurred. Contact the site owner or try again later.',
+            'rinkukado'
+        )
+    ))
     ->addModule(Preview\Module::new())
     ->addModule(Popover\Module::new())
     ->boot();
