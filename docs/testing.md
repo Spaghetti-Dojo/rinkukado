@@ -239,8 +239,12 @@ Run `pnpm build` first. Playwright tests the build output, not the sources.
 
 `tests/e2e/mu-plugins/rinkukado-fixtures.php` sets the permalink structure of
 the test site on its own, on the first request after the install. It also
-creates the posts and the links that the specs need. No manual setup step
-runs before the suite.
+creates the posts and the links that the specs need.
+
+The `afterStart` script of `.wp-env.json` runs
+`wp rewrite structure /%postname%/ --hard` after each `pnpm wp-env start`. It
+writes the `.htaccess` file. Without that file, Apache answers `404` for each
+pretty link and for `/wp-json/`. No manual setup step runs before the suite.
 
 ### Artifacts
 

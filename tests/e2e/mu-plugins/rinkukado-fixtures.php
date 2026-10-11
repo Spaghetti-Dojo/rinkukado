@@ -10,7 +10,11 @@ declare(strict_types=1);
 /**
  * The tests ask for /rinkukado-links/, so the site needs pretty permalinks.
  * A fresh wp-env site starts with the plain structure. Set the structure once,
- * and flush the rewrite rules once, on the first request after the install.
+ * on the first request after the install, so the fixtures get pretty links.
+ *
+ * This hook does not write the `.htaccess` file, because WordPress loads
+ * `save_mod_rewrite_rules()` only in the admin. The `afterStart` script of
+ * `.wp-env.json` writes the file.
  */
 add_action('init', static function (): void {
     $structure = '/%postname%/';

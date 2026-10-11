@@ -13,6 +13,9 @@
 	},
 	"port": 8877,
 	"testsPort": 8878,
+	"lifecycleScripts": {
+		"afterStart": "pnpm wp-env run cli wp rewrite structure /%postname%/ --hard"
+	},
 	"config": {
 		"WP_DEBUG": true,
 		"WP_ENVIRONMENT_TYPE": "local",
