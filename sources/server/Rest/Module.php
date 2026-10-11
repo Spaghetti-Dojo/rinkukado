@@ -9,6 +9,7 @@ use Inpsyde\Modularity\Module\ModuleClassNameIdTrait;
 use Inpsyde\Modularity\Module\ServiceModule;
 use Psr\Container\ContainerInterface;
 use SpaghettiDojo\Rinkukado\Config;
+use SpaghettiDojo\Rinkukado\Preview;
 
 /**
  * Publishes the services of the REST layer and registers the preview route.
@@ -42,22 +43,22 @@ final class Module implements ServiceModule, ExecutableModule
             Middlewares\Caching::class
                 => static fn (): Middlewares\Caching => Middlewares\Caching::new(),
 
-            Preview\PreviewRepository::class => static function (
+            Preview\Rest\Repository::class => static function (
                 ContainerInterface $container
-            ): Preview\PreviewRepository {
+            ): Preview\Rest\Repository {
                 $config = $container->get(Config::class);
 
-                return Preview\PreviewRepository::new(
-                    Preview\Excerpt::new($config->excerptLength()),
+                return Preview\Rest\Repository::new(
+                    Preview\Rest\Excerpt::new($config->excerptLength()),
                     $config->excerptLength()
                 );
             },
 
-            Preview\PreviewController::class => static fn (
+            Preview\Rest\Controller::class => static fn (
                 ContainerInterface $container
-            ): Preview\PreviewController => Preview\PreviewController::new(
+            ): Preview\Rest\Controller => Preview\Rest\Controller::new(
                 $container->get(Config::class),
-                $container->get(Preview\PreviewRepository::class),
+                $container->get(Preview\Rest\Repository::class),
                 $container->get(ErrorFactory::class)
             ),
         ];
@@ -65,14 +66,14 @@ final class Module implements ServiceModule, ExecutableModule
 
     public function run(ContainerInterface $container): bool
     {
-        $container->get(Preview\PreviewRepository::class)->init();
+        $container->get(Preview\Rest\Repository::class)->init();
 
         add_action('rest_api_init', static function () use ($container): void {
             Route::get(
                 'rinkukado/v1',
                 '/preview',
-                Preview\PreviewSchema::new(),
-                $container->get(Preview\PreviewController::class)
+                Preview\Rest\Schema::new(),
+                $container->get(Preview\Rest\Controller::class)
             )
                 ->withMiddleware($container->get(Middlewares\ErrorCatch::class))
                 ->withMiddleware($container->get(Middlewares\Caching::class))

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace SpaghettiDojo\Rinkukado\Tests\Unit\Preview;
+namespace SpaghettiDojo\Rinkukado\Tests\Unit\Preview\Rest;
 
 use Brain\Monkey\Functions;
-use SpaghettiDojo\Rinkukado\Rest\Preview\Excerpt;
+use SpaghettiDojo\Rinkukado\Preview\Rest\Excerpt;
 
 function post(string $excerpt, string $content): \WP_Post
 {

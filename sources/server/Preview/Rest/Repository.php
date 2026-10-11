@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace SpaghettiDojo\Rinkukado\Rest\Preview;
+namespace SpaghettiDojo\Rinkukado\Preview\Rest;
 
 /**
  * Builds the payload of a preview and keeps it in the object cache.
@@ -16,7 +16,7 @@ namespace SpaghettiDojo\Rinkukado\Rest\Preview;
  *     thumbnail: Thumbnail|null
  * }
  */
-final readonly class PreviewRepository
+final readonly class Repository
 {
     public const CACHE_GROUP = 'rinkukado';
     private const IMAGE_SIZE = 'medium';

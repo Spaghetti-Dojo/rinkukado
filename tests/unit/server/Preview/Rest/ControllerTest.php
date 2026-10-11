@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace SpaghettiDojo\Rinkukado\Tests\Unit\Preview;
+namespace SpaghettiDojo\Rinkukado\Tests\Unit\Preview\Rest;
 
 use Brain\Monkey\Functions;
 use SpaghettiDojo\Rinkukado\Config;
+use SpaghettiDojo\Rinkukado\Preview\Rest\Controller;
+use SpaghettiDojo\Rinkukado\Preview\Rest\Excerpt;
+use SpaghettiDojo\Rinkukado\Preview\Rest\Repository;
 use SpaghettiDojo\Rinkukado\Rest;
-use SpaghettiDojo\Rinkukado\Rest\Preview\Excerpt;
-use SpaghettiDojo\Rinkukado\Rest\Preview\PreviewController;
-use SpaghettiDojo\Rinkukado\Rest\Preview\PreviewRepository;
 
 /*
- * PreviewRepository is a final readonly class. Mockery cannot generate a
+ * Repository is a final readonly class. Mockery cannot generate a
  * mock that satisfies its type hint, so these tests use a real instance.
  * A rejection that happens before the repository is reached needs no stub
  * of wp_cache_get, because the code never calls forPost(). A test that
@@ -37,9 +37,9 @@ function config(): Config
     return Config::new();
 }
 
-function repository(): PreviewRepository
+function repository(): Repository
 {
-    return PreviewRepository::new(Excerpt::new(30), 30);
+    return Repository::new(Excerpt::new(30), 30);
 }
 
 beforeEach(function (): void {
@@ -54,7 +54,7 @@ beforeEach(function (): void {
 });
 
 it('rejects a URL of another host', function (): void {
-    $error = PreviewController::new(config(), repository(), Rest\ErrorFactory::new())(
+    $error = Controller::new(config(), repository(), Rest\ErrorFactory::new())(
         request('https://other.test/post/')
     );
 
@@ -64,7 +64,7 @@ it('rejects a URL of another host', function (): void {
 });
 
 it('rejects a URL that resolves to no post', function (): void {
-    $error = PreviewController::new(config(), repository(), Rest\ErrorFactory::new())(
+    $error = Controller::new(config(), repository(), Rest\ErrorFactory::new())(
         request('https://example.com/category/news/')
     );
 
@@ -82,7 +82,7 @@ it('rejects a post that is not published', function (): void {
 
     Functions\when('get_post')->justReturn($post);
 
-    $error = PreviewController::new(
+    $error = Controller::new(
         config(),
         repository(),
         Rest\ErrorFactory::new()
@@ -102,7 +102,7 @@ it('rejects a post that holds a password', function (): void {
 
     Functions\when('get_post')->justReturn($post);
 
-    $error = PreviewController::new(
+    $error = Controller::new(
         config(),
         repository(),
         Rest\ErrorFactory::new()
@@ -122,7 +122,7 @@ it('rejects a post type that is not allowed', function (): void {
 
     Functions\when('get_post')->justReturn($post);
 
-    $error = PreviewController::new(
+    $error = Controller::new(
         config(),
         repository(),
         Rest\ErrorFactory::new()
@@ -152,7 +152,7 @@ it('returns the payload of a published post', function (): void {
 
     Functions\when('wp_cache_get')->justReturn($payload);
 
-    $response = PreviewController::new(config(), repository(), Rest\ErrorFactory::new())(
+    $response = Controller::new(config(), repository(), Rest\ErrorFactory::new())(
         request('https://example.com/post/')
     );
 
@@ -186,7 +186,7 @@ it('lets a filter change the payload', function (): void {
     );
     Functions\when('get_post_types')->justReturn(['post' => 'post', 'page' => 'page']);
 
-    $response = PreviewController::new(
+    $response = Controller::new(
         Config::new(),
         repository(),
         Rest\ErrorFactory::new()

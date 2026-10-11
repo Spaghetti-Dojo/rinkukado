@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace SpaghettiDojo\Rinkukado\Rest\Preview;
+namespace SpaghettiDojo\Rinkukado\Preview\Rest;
 
 use SpaghettiDojo\Rinkukado\Config;
 use SpaghettiDojo\Rinkukado\Rest;
@@ -10,11 +10,11 @@ use SpaghettiDojo\Rinkukado\Rest;
 /**
  * Turns the URL of a link into the payload of a preview.
  */
-final readonly class PreviewController implements Rest\Controller
+final readonly class Controller implements Rest\Controller
 {
     public static function new(
         Config $config,
-        PreviewRepository $repository,
+        Repository $repository,
         Rest\ErrorFactory $errorFactory
     ): self {
 
@@ -23,7 +23,7 @@ final readonly class PreviewController implements Rest\Controller
 
     private function __construct(
         private Config $config,
-        private PreviewRepository $repository,
+        private Repository $repository,
         private Rest\ErrorFactory $errorFactory,
     ) {
     }

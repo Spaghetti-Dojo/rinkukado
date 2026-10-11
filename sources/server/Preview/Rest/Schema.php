@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace SpaghettiDojo\Rinkukado\Rest\Preview;
+namespace SpaghettiDojo\Rinkukado\Preview\Rest;
 
 use SpaghettiDojo\Rinkukado\Rest;
 
@@ -10,7 +10,7 @@ use SpaghettiDojo\Rinkukado\Rest;
  * The request of the preview endpoint. WordPress validates it before the
  * controller runs.
  */
-final readonly class PreviewSchema implements Rest\Schema
+final readonly class Schema implements Rest\Schema
 {
     public static function new(): self
     {

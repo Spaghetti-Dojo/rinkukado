@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace SpaghettiDojo\Rinkukado\Rest\Preview;
+namespace SpaghettiDojo\Rinkukado\Preview\Rest;
 
 /**
  * Builds the text of the preview.
