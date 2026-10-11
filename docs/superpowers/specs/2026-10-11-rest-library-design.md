@@ -25,6 +25,7 @@ headers and its filters stay the same.
 | Composer | No new package and no new PSR-4 entry. |
 | Coupling | The library uses no class of the plugin, no text domain of the plugin and no filter of the plugin. |
 | Place of the preview code | `sources/server/Preview/Rest/`, namespace `SpaghettiDojo\Rinkukado\Preview\Rest`. |
+| Names of the preview classes | No `Preview` prefix: `Controller`, `Repository`, `Schema`, `Excerpt`. The namespace already names the preview. |
 | Owner of the route | `Preview\Module` registers `rinkukado/v1/preview`. |
 | Owner of `Config` | `Preview\Module` publishes the `Config` service. |
 | Message of `ErrorCatch` | The consumer gives it to `ErrorCatch::new()`. |
@@ -48,7 +49,7 @@ The library has three couplings to the plugin today.
 | --- | --- | --- |
 | `Rest/Module.php` | Uses `Config`. Publishes the preview services. Registers the preview route. | Move those parts to `Preview\Module`. |
 | `Rest/Middlewares/ErrorCatch.php` | Translates its message with the `rinkukado` text domain. | Get the message as an argument. |
-| `Rest/Preview/*` | Plugin code in the namespace of the library. | Move to `Preview/Rest/`. |
+| `Rest/Preview/*` | Plugin code in the namespace of the library. | Move to `Preview/Rest/` and rename. |
 
 `Rest/Middlewares/Caching.php` has no code coupling. Only its doc comment
 names the preview, so the comment changes.
@@ -100,31 +101,54 @@ stay the same.
 sources/server/Preview/
   Module.php
   Rest/
+    Controller.php
     Excerpt.php
-    PreviewController.php
-    PreviewRepository.php
-    PreviewSchema.php
+    Repository.php
+    Schema.php
 ```
 
-The four classes move with no change of behavior. Only their namespace and
-their imports change.
+The four classes move with no change of behavior. Their namespace and their
+imports change, and three of them lose the `Preview` prefix:
+
+| Before | After |
+| --- | --- |
+| `Rest\Preview\PreviewController` | `Preview\Rest\Controller` |
+| `Rest\Preview\PreviewRepository` | `Preview\Rest\Repository` |
+| `Rest\Preview\PreviewSchema` | `Preview\Rest\Schema` |
+| `Rest\Preview\Excerpt` | `Preview\Rest\Excerpt` |
+
+`Controller` and `Schema` now have the same short names as the interfaces of
+the library. Each class imports the namespace of the library, not the
+interface, so the two names do not collide:
+
+```php
+namespace SpaghettiDojo\Rinkukado\Preview\Rest;
+
+use SpaghettiDojo\Rinkukado\Rest;
+
+final readonly class Controller implements Rest\Controller
+```
+
+In `Preview\Module`, the name `Rest\Controller` resolves to the preview class.
+The module imports the classes of the library one by one (`Route`,
+`ErrorFactory`, `Middlewares\Caching`, `Middlewares\ErrorCatch`).
 
 `Preview\Module` is a `ServiceModule` and an `ExecutableModule`. It publishes:
 
 - `Config`
-- `Preview\Rest\PreviewRepository`
-- `Preview\Rest\PreviewController`
+- `Preview\Rest\Repository`
+- `Preview\Rest\Controller`
 
 Its `run()` method does what `Rest\Module::run()` does today. It calls
-`PreviewRepository::init()`, and it registers the route on `rest_api_init`:
+`Repository::init()`, and it registers the route on `rest_api_init`:
 
 ```php
 add_action('rest_api_init', static function () use ($container): void {
     Route::get(
         'rinkukado/v1',
         '/preview',
-        Rest\PreviewSchema::new(),
-        $container->get(Rest\PreviewController::class)
+        Rest\Schema::new(),
+        $container->get(Rest\Controller::class)
     )
         ->withMiddleware(ErrorCatch::new(
             $container->get(ErrorFactory::class),
@@ -161,7 +185,7 @@ exception for `ErrorCatch`.
 
 | Test | Change |
 | --- | --- |
-| `tests/unit/server/Preview/*` | Move to `tests/unit/server/Preview/Rest/`. Change the namespace and the imports. |
+| `tests/unit/server/Preview/*` | Move to `tests/unit/server/Preview/Rest/`. Rename to `ControllerTest.php`, `RepositoryTest.php` and `ExcerptTest.php`. Change the namespace, the imports and the class names. |
 | `tests/unit/server/Rest/ErrorCatchTest.php` | Give the message to `new()`. Add a test that the error holds that message. |
 | `tests/unit/server/Rest/ArchTest.php` | New. See below. |
 | `tests/integration/server/PreviewEndpointTest.php` | No change. It proves that the endpoint still works through the new module. |
