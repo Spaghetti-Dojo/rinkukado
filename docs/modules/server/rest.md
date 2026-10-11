@@ -5,9 +5,11 @@ middlewares. The code lives in `sources/server/Rest/`.
 
 ## Rule
 
-The library does not use the plugin. It uses no class of another module and
-no filter of the plugin. `tests/unit/server/Rest/ArchTest.php` fails when a
-class of the library uses `Config`, `Preview` or `Popover`.
+The library does not use the plugin. It uses no class of another module, no
+function of the plugin and no filter of the plugin.
+`tests/unit/server/Rest/ArchTest.php` guards the rule. It fails when a file of
+the library names a symbol of `SpaghettiDojo\Rinkukado` outside the `Rest`
+namespace, or a `rinkukado.*` filter.
 
 One coupling stays: `ErrorCatch` translates its message with the `rinkukado`
 text domain. A project that copies the library must change the text domain in
@@ -35,6 +37,8 @@ on `rest_api_init`:
 
 ```php
 add_action('rest_api_init', static function () use ($container): void {
+    $controller = $container->get(ThingController::class);
+
     Route::get('my-plugin/v1', '/things', ThingSchema::new(), $controller)
         ->withMiddleware($container->get(Middlewares\ErrorCatch::class))
         ->withMiddleware($container->get(Middlewares\Caching::class))

@@ -21,7 +21,7 @@ sources/server/
 ```
 
 **Guidelines:**
-- One module per feature domain (e.g., `Popover`, `Rest`)
+- One module per feature domain (e.g., `Popover`, `Preview`)
 - Each module contains one `Module.php` entry point
 - Feature logic is separated into dedicated classes
 

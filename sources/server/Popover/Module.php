@@ -24,7 +24,7 @@ final class Module implements ExecutableModule
 
     public function run(ContainerInterface $container): bool
     {
-        PopoverRegion::new(Config::new())->init();
+        PopoverRegion::new($container->get(Config::class))->init();
         ScriptModules::new()->init();
 
         return true;

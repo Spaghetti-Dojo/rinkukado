@@ -218,3 +218,22 @@ fails, then the moves make it pass.
 - `composer qa` passes.
 - `PreviewEndpointTest` passes with no change.
 - The e2e specs pass with no change.
+
+## 8. Changes after the review
+
+The review of the branch found six minor points. These changes answer them.
+
+- **The guard is stronger than section 5 shows.** `ArchTest.php` keeps the
+  architecture test and adds two tests that read the files of the library.
+  The first fails when a file names a symbol of `SpaghettiDojo\Rinkukado`
+  outside the `Rest` namespace. It also catches a new module and the
+  `package()` function. The second fails when a file names a `rinkukado.*`
+  filter.
+- **`Popover\Module` gets `Config` from the container.** Section 2 put
+  `Popover` out of scope. The module now needs the service that
+  `Preview\Module` publishes.
+- **`RestRegistTrait` has the `@internal` tag.** This is the only change of a
+  library class, and it changes a comment only.
+- **The `404` text of the endpoint stays.** A request with no `url`, with a
+  `url` that is not valid, and with a `url` of another host each answers
+  `404`. The review expected `400`.

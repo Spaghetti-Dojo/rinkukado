@@ -13,6 +13,8 @@ gives the config and the state to the store. The code lives in
 | `ScriptModules` | Registers and loads the script module and the style. |
 
 The module reads its values from `Config`, in `sources/server/Config.php`.
+It gets `Config` from the container. The [Preview](preview.md) module
+publishes that service, so the plugin must add `Preview\Module` too.
 
 ## Dialog
 
